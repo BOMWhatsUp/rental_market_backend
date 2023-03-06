@@ -4,7 +4,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 }
 
-group 'org.example'
+group 'org.bom'
 version '1.0-SNAPSHOT'
 
 repositories {
