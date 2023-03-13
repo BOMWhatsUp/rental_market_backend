@@ -51,7 +51,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Member getUpdateUser(Long id, MemberUpdate memberUpdate) {
+    public Member getUpdateUser(long id, MemberUpdate memberUpdate) {
 
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
