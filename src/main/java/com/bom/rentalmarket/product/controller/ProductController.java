@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
-@RequestMapping("/rentals")
+@RequestMapping("/product")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -27,7 +27,7 @@ public class ProductController {
     return "/rentals";
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public ResponseEntity<ProductBoard> createRental(@ModelAttribute CreateProductForm createProductForm, @RequestParam("imageFiles") MultipartFile[] imageFiles) throws IOException {
     ProductBoard rental = productService.createRental(createProductForm, imageFiles);
     return ResponseEntity.ok(rental);
