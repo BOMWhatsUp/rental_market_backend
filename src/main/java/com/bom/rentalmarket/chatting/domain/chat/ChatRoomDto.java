@@ -1,6 +1,6 @@
-package com.bom.rentalmarket.domain.chat;
+package com.bom.rentalmarket.chatting.domain.chat;
 
-import com.bom.rentalmarket.domain.model.ChatMessage;
+import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

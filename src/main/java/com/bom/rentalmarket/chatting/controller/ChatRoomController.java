@@ -1,9 +1,10 @@
-package com.bom.rentalmarket.controller;
+package com.bom.rentalmarket.chatting.controller;
 
-import com.bom.rentalmarket.domain.chat.ChatRoomDto;
-import com.bom.rentalmarket.domain.chat.ChatRoomUsers;
-import com.bom.rentalmarket.service.ChatRoomService;
-import com.bom.rentalmarket.service.ChatService;
+import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatRoomUsers;
+import com.bom.rentalmarket.chatting.service.ChatRoomService;
+import com.bom.rentalmarket.chatting.service.ChatService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,24 +34,25 @@ public class ChatRoomController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ChatRoomDto>> getRooms() {
+    public ResponseEntity<List<ChatListDto>> findAllRoom() {
         String userName = "seller";
-        List<ChatRoomDto> chatRoomDtos = chatRoomService.findAllRoom(userName);
-        return ResponseEntity.ok(chatRoomDtos);
+        List<ChatListDto> chatList= chatRoomService.findAllRoom(userName);
+
+        return ResponseEntity.ok(chatList);
     }
 
     @PostMapping("/room")
-    public ResponseEntity<String> createRoom(@RequestBody ChatRoomUsers user) {
-        String roomId = chatRoomService.connectRoomBetweenUsers(user.getReceiverId(), user.getSenderId());
+    public ResponseEntity<Void> createRoom(@RequestBody ChatRoomUsers user) {
+        String roomName = chatRoomService.connectRoomBetweenUsers(user.getReceiverId(), user.getSenderId());
 
-        return ResponseEntity.ok(roomId);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/room/{roomName}")
-    public ResponseEntity<String> deleteRoom(@PathVariable String roomName) {
+    public ResponseEntity<Void> deleteRoom(@PathVariable String roomName) {
         chatRoomService.deleteRoom(roomName);
 
-        return ResponseEntity.ok("삭제완료");
+        return ResponseEntity.ok().build();
     }
 
 

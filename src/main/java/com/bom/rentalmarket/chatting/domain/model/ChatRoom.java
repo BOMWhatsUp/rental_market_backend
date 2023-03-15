@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.domain.model;
+package com.bom.rentalmarket.chatting.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;

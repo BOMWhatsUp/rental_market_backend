@@ -1,6 +1,6 @@
-package com.bom.rentalmarket.domain.repository;
+package com.bom.rentalmarket.chatting.domain.repository;
 
-import com.bom.rentalmarket.domain.model.ChatRoom;
+import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

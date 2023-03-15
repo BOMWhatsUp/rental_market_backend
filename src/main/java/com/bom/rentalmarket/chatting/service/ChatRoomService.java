@@ -1,14 +1,19 @@
-package com.bom.rentalmarket.service;
+package com.bom.rentalmarket.chatting.service;
 
-import com.bom.rentalmarket.domain.chat.ChatRoomDto;
-import com.bom.rentalmarket.domain.model.ChatRoom;
-import com.bom.rentalmarket.domain.model.RegisterRoom;
-import com.bom.rentalmarket.domain.repository.ChatRoomRepository;
-import com.bom.rentalmarket.domain.repository.RegisterRoomRepository;
+import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDto;
+import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
+import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
+import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
+import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
+import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
+import com.bom.rentalmarket.chatting.domain.repository.RegisterRoomRepository;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +24,39 @@ public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final RegisterRoomRepository registerRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
-    public List<ChatRoomDto> findAllRoom(String userName) {
-        List<RegisterRoom> registerRooms = registerRoomRepository.findByUserName(userName);
+    public List<ChatListDto> findAllRoom(String userName) {
+        List<ChatListDto> chatList = new ArrayList<>();
+        List<RegisterRoom> registerRooms = registerRoomRepository.findAllByUserName(userName);
 
-        return registerRooms.stream().
-            map(room -> ChatRoomDto.builder()
-                .roomName(room.getChatRoom().getRoomName())
-                .messages(room.getChatRoom().getMessages())
-                .userName(room.getUserName())
-                .build())
-            .collect(Collectors.toList());
+        for(RegisterRoom room : registerRooms) {
+            ChatRoom chatRoom = room.getChatRoom();
+            String anotherUserName = this.findAnotherUser(chatRoom.getId(), userName);
+            ChatMessage chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(chatRoom.getId());
+
+            if(chatMessage == null) {
+                continue;
+            }
+            chatList.add(ChatListDto.builder()
+                .receiverNickName(anotherUserName)
+                .message(chatMessage.getMessage())
+                .latelySenderDate(chatMessage.getSendTime())
+                .build());
+        }
+
+        Collections.sort(chatList, new Comparator<ChatListDto>() {
+            @Override
+            public int compare(ChatListDto o1, ChatListDto o2) {
+                if(o1.getLatelySenderDate().isAfter(o2.getLatelySenderDate())) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        });
+
+        return chatList;
     }
 
     public ChatRoomDto findByRoomName(String roomName, String userName) {
@@ -84,4 +111,13 @@ public class ChatRoomService {
         registerRoomRepository.deleteAll(registerRooms);
     }
 
+    private String findAnotherUser(Long roomId, String myId) {
+        List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(roomId);
+        for(RegisterRoom room : registerRooms) {
+            if(!myId.equals(room.getUserName())) {
+                return room.getUserName();
+            }
+        }
+        return myId;
+    }
 }

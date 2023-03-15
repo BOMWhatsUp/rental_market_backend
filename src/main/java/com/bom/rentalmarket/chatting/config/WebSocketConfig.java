@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.config;
+package com.bom.rentalmarket.chatting.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chatting")
-            .setAllowedOrigins("http://localhost:8080")
+            .setAllowedOriginPatterns("*")
             .withSockJS();
     }
 }
