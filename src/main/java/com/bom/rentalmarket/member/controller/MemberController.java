@@ -4,32 +4,40 @@ package com.bom.rentalmarket.member.controller;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.bom.rentalmarket.member.MemberRepository;
 import com.bom.rentalmarket.member.domain.exception.ExistsEmailException;
+import com.bom.rentalmarket.member.domain.exception.ExistsNickNameException;
 import com.bom.rentalmarket.member.domain.exception.PasswordNotMatchException;
 import com.bom.rentalmarket.member.domain.exception.UserNotFoundException;
 import com.bom.rentalmarket.member.domain.model.*;
 import com.bom.rentalmarket.member.domain.model.entity.Member;
 import com.bom.rentalmarket.member.domain.util.JWTUtils;
 import com.bom.rentalmarket.member.domain.util.PasswordUtils;
+import com.bom.rentalmarket.member.repository.MemberRepository;
 import com.bom.rentalmarket.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class MemberController {
@@ -62,10 +70,61 @@ public class MemberController {
      지역, 닉네임 정도만 수정 가능..?
      닉네임은 중복 불가까지..
      */
+
+    String getNewSaveFile(String basePath, String originalFilename) { // originalFilename 파일 확장자
+
+        LocalDate now = LocalDate.now();
+
+        String[] dirs = {
+                String.format("%s/%d/", basePath, now.getYear()),
+                String.format("%s/%d/%02d/", basePath, now.getYear(), now.getMonthValue()),
+                String.format("%s/%d/%02d/%02d", basePath, now.getYear(), now.getMonthValue(),
+                        now.getDayOfMonth())};
+
+        for (String dir : dirs) {
+            File file = new File(dir);
+            if (!file.isDirectory()) {
+                file.mkdir();
+            }
+        }
+
+        String fileExtension = "";
+        if (originalFilename != null) {
+            int dotPos = originalFilename.lastIndexOf(".");
+            if (dotPos > -1) {
+                fileExtension = originalFilename.substring(dotPos + 1);
+            }
+        }
+
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        String newFilename = String.format("%s%s", dirs[2], uuid);
+        if (fileExtension.length() > 0) {
+            newFilename += "." + fileExtension;
+        }
+
+        return newFilename;
+    }
+
     @PutMapping("/users/modify/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id
             , @RequestBody @Valid MemberUpdate memberUpdate
+            , MultipartFile imageFile
             , Errors errors) {
+
+        String saveFileName = "";
+        if (imageFile != null) {
+            String originalFilename = imageFile.getOriginalFilename();
+            String basePath = "C:/SpringBoot/rental_market_backend/ImageFile";
+            saveFileName = getNewSaveFile(basePath, originalFilename);
+            try {
+                File newFile = new File(saveFileName);
+                FileCopyUtils.copy(imageFile.getInputStream(), new FileOutputStream(newFile));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        memberUpdate.setFilename(saveFileName);
+
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
             errors.getAllErrors().forEach((e) -> {
@@ -74,8 +133,20 @@ public class MemberController {
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
 
-        Member member = memberService.getUpdateUser(id, memberUpdate);
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
+
+        if (memberRepository.countByNickName(memberUpdate.getNickName()) > 0) {
+            throw new ExistsNickNameException("이미 존재한 닉네임 입니다.");
+        }
+
+        member.setNickName(memberUpdate.getNickName());
+        member.setRegin(memberUpdate.getRegin());
+        member.setFilename(memberUpdate.getFilename());
+        member.setUpdateDate(LocalDateTime.now());
+
         memberRepository.save(member);
+
         return ResponseEntity.ok().build();
     }
 
@@ -93,7 +164,8 @@ public class MemberController {
 
         return ResponseEntity.ok().build();
     }
-// 회원 비밀번호 수정
+
+    // 회원 비밀번호 수정
 //  MyPage 사용자 비밀번호 일치할때 비밀번호 수정 하는 API=======================================
     @PatchMapping("/user/{id}/reSetPassword/")
     public ResponseEntity<?> updateMemberPassword(@PathVariable Long id
@@ -112,7 +184,6 @@ public class MemberController {
         memberRepository.save(updateMember);
         return ResponseEntity.ok().build();
     }
-
 
 
     // 회원 탈퇴하는 로직 단, 회원이 게시물을 올렸을 땐 회원 삭제가 안된다.

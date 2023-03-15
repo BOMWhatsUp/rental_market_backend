@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member;
+package com.bom.rentalmarket.member.repository;
 
 import com.bom.rentalmarket.member.domain.model.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;

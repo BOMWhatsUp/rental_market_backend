@@ -1,14 +1,12 @@
 package com.bom.rentalmarket.member.service.Impl;
 
-import com.bom.rentalmarket.member.MemberRepository;
 import com.bom.rentalmarket.member.domain.exception.ExistsEmailException;
-import com.bom.rentalmarket.member.domain.exception.ExistsNickNameException;
 import com.bom.rentalmarket.member.domain.exception.PasswordNotMatchException;
 import com.bom.rentalmarket.member.domain.exception.UserNotFoundException;
 import com.bom.rentalmarket.member.domain.model.MemberInput;
 import com.bom.rentalmarket.member.domain.model.MemberInputPassword;
-import com.bom.rentalmarket.member.domain.model.MemberUpdate;
 import com.bom.rentalmarket.member.domain.model.entity.Member;
+import com.bom.rentalmarket.member.repository.MemberRepository;
 import com.bom.rentalmarket.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,32 +45,15 @@ public class MemberServiceImpl implements MemberService {
                 .password(encPassword)
                 .regin(memberInput.getRegin())
                 .regDate(LocalDateTime.now())
+                .filename(memberInput.getFilename())
                 .build();
     }
 
-    @Override
-    public Member getUpdateUser(long id, MemberUpdate memberUpdate) {
-
-        Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
-
-        if (memberRepository.countByNickName(memberUpdate.getNickName()) > 0) {
-            throw new ExistsNickNameException("이미 존재한 닉네임 입니다.");
-        }
-
-        member.setNickName(memberUpdate.getNickName());
-        member.setRegin(memberUpdate.getRegin());
-        member.setUpdateDate(LocalDateTime.now());
-
-
-        return Member.builder().build();
-    }
 
     @ExceptionHandler(value = {UsernameNotFoundException.class, PasswordNotMatchException.class})
     public ResponseEntity<?> UserNotFoundExceptionHandler(RuntimeException exception) {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
-
 
 
     @Override

@@ -33,9 +33,15 @@ public class Member  {
     private String regin;
 
     @Column
-    private LocalDateTime regDate;
+    private LocalDateTime regDate;// 회원가입 날짜
 
     @Column
-    private LocalDateTime updateDate; // 수정정보
+    private LocalDateTime updateDate; // 회원정보 수정 날짜
+
+
+    private String filename;
+
+
+
 
 }

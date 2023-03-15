@@ -19,7 +19,7 @@ public interface MemberService {
    회원 정보 수정
    지역, 닉네임은 수정할 수 있도록 한다
     */
-   Member getUpdateUser(long id, MemberUpdate memberUpdate);
+//   Member getUpdateUser(Long id, MemberUpdate memberUpdate);
 
    /*
    임시 비밀번호를 만들어 비밀번호 변경
