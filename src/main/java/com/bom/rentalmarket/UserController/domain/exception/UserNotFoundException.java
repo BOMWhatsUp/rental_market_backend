@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member.domain.exception;
+package com.bom.rentalmarket.UserController.domain.exception;
 
 public class UserNotFoundException extends RuntimeException{
     public UserNotFoundException(String s) {

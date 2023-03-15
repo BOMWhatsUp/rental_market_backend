@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member.domain.model.entity;
+package com.bom.rentalmarket.UserController.domain.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

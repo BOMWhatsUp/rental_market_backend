@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member.domain.util;
+package com.bom.rentalmarket.UserController.domain.util;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.security.crypto.bcrypt.BCrypt;

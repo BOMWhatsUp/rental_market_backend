@@ -1,8 +1,8 @@
-package com.bom.rentalmarket.member.service;
+package com.bom.rentalmarket.UserController.service;
 
 
-import com.bom.rentalmarket.member.domain.model.*;
-import com.bom.rentalmarket.member.domain.model.entity.Member;
+import com.bom.rentalmarket.UserController.domain.model.*;
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 
 public interface MemberService {
 

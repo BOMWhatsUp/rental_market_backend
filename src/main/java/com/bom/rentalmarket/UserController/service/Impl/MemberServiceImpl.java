@@ -1,13 +1,13 @@
-package com.bom.rentalmarket.member.service.Impl;
+package com.bom.rentalmarket.UserController.service.Impl;
 
-import com.bom.rentalmarket.member.domain.exception.ExistsEmailException;
-import com.bom.rentalmarket.member.domain.exception.PasswordNotMatchException;
-import com.bom.rentalmarket.member.domain.exception.UserNotFoundException;
-import com.bom.rentalmarket.member.domain.model.MemberInput;
-import com.bom.rentalmarket.member.domain.model.MemberInputPassword;
-import com.bom.rentalmarket.member.domain.model.entity.Member;
-import com.bom.rentalmarket.member.repository.MemberRepository;
-import com.bom.rentalmarket.member.service.MemberService;
+import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException;
+import com.bom.rentalmarket.UserController.domain.exception.PasswordNotMatchException;
+import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
+import com.bom.rentalmarket.UserController.domain.model.MemberInput;
+import com.bom.rentalmarket.UserController.domain.model.MemberInputPassword;
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
+import com.bom.rentalmarket.UserController.repository.MemberRepository;
+import com.bom.rentalmarket.UserController.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

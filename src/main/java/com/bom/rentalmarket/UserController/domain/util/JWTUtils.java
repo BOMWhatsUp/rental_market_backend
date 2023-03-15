@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member.domain.util;
+package com.bom.rentalmarket.UserController.domain.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

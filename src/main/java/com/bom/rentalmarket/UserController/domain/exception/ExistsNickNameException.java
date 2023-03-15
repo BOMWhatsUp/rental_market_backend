@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.member.domain.exception;
+package com.bom.rentalmarket.UserController.domain.exception;
 
 public class ExistsNickNameException extends RuntimeException {
     public ExistsNickNameException(String s) {

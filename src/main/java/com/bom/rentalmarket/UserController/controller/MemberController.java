@@ -1,19 +1,19 @@
-package com.bom.rentalmarket.member.controller;
+package com.bom.rentalmarket.UserController.controller;
 
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.bom.rentalmarket.member.domain.exception.ExistsEmailException;
-import com.bom.rentalmarket.member.domain.exception.ExistsNickNameException;
-import com.bom.rentalmarket.member.domain.exception.PasswordNotMatchException;
-import com.bom.rentalmarket.member.domain.exception.UserNotFoundException;
-import com.bom.rentalmarket.member.domain.model.*;
-import com.bom.rentalmarket.member.domain.model.entity.Member;
-import com.bom.rentalmarket.member.domain.util.JWTUtils;
-import com.bom.rentalmarket.member.domain.util.PasswordUtils;
-import com.bom.rentalmarket.member.repository.MemberRepository;
-import com.bom.rentalmarket.member.service.MemberService;
+import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException;
+import com.bom.rentalmarket.UserController.domain.exception.ExistsNickNameException;
+import com.bom.rentalmarket.UserController.domain.exception.PasswordNotMatchException;
+import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
+import com.bom.rentalmarket.UserController.domain.model.*;
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
+import com.bom.rentalmarket.UserController.domain.util.JWTUtils;
+import com.bom.rentalmarket.UserController.domain.util.PasswordUtils;
+import com.bom.rentalmarket.UserController.repository.MemberRepository;
+import com.bom.rentalmarket.UserController.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -224,10 +224,9 @@ public class MemberController {
             throw new PasswordNotMatchException("비밀번호가 일치하지 않습니다.!");
         }
 
-
         // 토큰을 발행해 보자. -> builder 패턴을 할용하여 JWT 토큰 발행
         // 토큰은 key value 내려옴
-        LocalDateTime localDateTime = LocalDateTime.now().plusMonths(1);
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(1);
         Date expireDate = java.sql.Timestamp.valueOf(localDateTime);
 
         String token = JWT.create()
