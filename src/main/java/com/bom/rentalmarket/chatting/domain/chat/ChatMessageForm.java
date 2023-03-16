@@ -1,20 +1,20 @@
 package com.bom.rentalmarket.chatting.domain.chat;
 
-import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRoomDto {
+public class ChatMessageForm {
+
     private String roomName;
-    private String userName;
-    private List<ChatMessage> messages;
+    private String sender;
+    private String receiver;
+    private String userProfile;
+    private String message;
+
 }

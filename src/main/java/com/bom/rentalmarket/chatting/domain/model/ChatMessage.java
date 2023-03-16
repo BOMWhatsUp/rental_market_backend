@@ -1,6 +1,6 @@
 package com.bom.rentalmarket.chatting.domain.model;
 
-import javax.persistence.CascadeType;
+import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,21 +17,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class RegisterRoom {
+public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String userName;
+    private String message;
+    private LocalDateTime sendTime;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "room_id")
+    @ManyToOne
+    @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
-
-    public static RegisterRoom of(String userName, ChatRoom chatRoom) {
-        return RegisterRoom.builder()
-            .userName(userName)
-            .chatRoom(chatRoom)
-            .build();
-    }
 }
