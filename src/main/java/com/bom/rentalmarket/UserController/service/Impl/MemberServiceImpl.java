@@ -24,6 +24,7 @@ import java.util.UUID;
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
 
+
     private String getEncryptPassword(String password) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         return bCryptPasswordEncoder.encode(password);
@@ -45,7 +46,6 @@ public class MemberServiceImpl implements MemberService {
                 .password(encPassword)
                 .regin(memberInput.getRegin())
                 .regDate(LocalDateTime.now())
-                .filename(memberInput.getFilename())
                 .build();
     }
 
@@ -96,6 +96,7 @@ public class MemberServiceImpl implements MemberService {
 
         return Member.builder().build();
     }
+
 
 }
 

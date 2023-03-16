@@ -1,18 +1,20 @@
 package com.bom.rentalmarket.UserController.service;
 
 
-import com.bom.rentalmarket.UserController.domain.model.*;
+import com.bom.rentalmarket.UserController.domain.model.MemberInput;
+import com.bom.rentalmarket.UserController.domain.model.MemberInputPassword;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 
 public interface MemberService {
 
+
    /*
-   회원 가입
-   email(중복확인)
-   nickName(중복확인)
-   password
-   지역
-    */
+      회원 가입
+      email(중복확인)
+      nickName(중복확인)
+      password
+      지역
+       */
    Member getAddUser(MemberInput memberInput);
 
    /*
@@ -30,7 +32,6 @@ public interface MemberService {
    임시비밀번호와 newPassword 를 작성하여 비밀번호 변경
     */
    Member getUpdateMemberPassword(Long id, MemberInputPassword memberInputPassword);
-
 
    /*
    회원탈퇴 -> 회원이 게시물을 올렸을 땐 회원 삭제가 안된다.

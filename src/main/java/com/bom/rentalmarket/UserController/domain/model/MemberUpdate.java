@@ -23,6 +23,4 @@ public class MemberUpdate {
 
     @NotBlank(message = "지역 입력은 필수 사항 입니다.")
     private String regin;
-
-    private String filename;
 }
