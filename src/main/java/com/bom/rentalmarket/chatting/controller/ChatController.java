@@ -1,7 +1,7 @@
-package com.bom.rentalmarket.controller;
+package com.bom.rentalmarket.chatting.controller;
 
-import com.bom.rentalmarket.domain.chat.ChatMessageForm;
-import com.bom.rentalmarket.service.ChatService;
+import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
+import com.bom.rentalmarket.chatting.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,8 +19,6 @@ public class ChatController {
     //"/pub/chat/message"
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageForm form) {
-        String receiver = form.getReceiver();
-        System.out.println(receiver);
         chatService.save(form);
         simpMessagingTemplate.convertAndSend("/sub" + form.getRoomName(), form);
     }

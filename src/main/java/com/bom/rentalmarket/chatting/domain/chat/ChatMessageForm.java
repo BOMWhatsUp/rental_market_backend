@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.domain.chat;
+package com.bom.rentalmarket.chatting.domain.chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

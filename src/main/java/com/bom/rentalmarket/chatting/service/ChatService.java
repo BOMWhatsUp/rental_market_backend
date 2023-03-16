@@ -1,10 +1,10 @@
-package com.bom.rentalmarket.service;
+package com.bom.rentalmarket.chatting.service;
 
-import com.bom.rentalmarket.domain.chat.ChatMessageForm;
-import com.bom.rentalmarket.domain.model.ChatMessage;
-import com.bom.rentalmarket.domain.model.ChatRoom;
-import com.bom.rentalmarket.domain.repository.ChatMessageRepository;
-import com.bom.rentalmarket.domain.repository.ChatRoomRepository;
+import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
+import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
+import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
+import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
+import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
