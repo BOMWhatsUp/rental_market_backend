@@ -8,5 +8,6 @@ public class RentalMarketApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(RentalMarketApplication.class, args);
+
   }
 }
