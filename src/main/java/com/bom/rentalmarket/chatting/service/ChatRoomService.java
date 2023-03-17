@@ -1,6 +1,7 @@
 package com.bom.rentalmarket.chatting.service;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDto;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
@@ -30,12 +31,13 @@ public class ChatRoomService {
         List<ChatListDto> chatList = new ArrayList<>();
         List<RegisterRoom> registerRooms = registerRoomRepository.findAllByUserName(userName);
 
-        for(RegisterRoom room : registerRooms) {
+        for (RegisterRoom room : registerRooms) {
             ChatRoom chatRoom = room.getChatRoom();
             String anotherUserName = this.findAnotherUser(chatRoom.getId(), userName);
-            ChatMessage chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(chatRoom.getId());
+            ChatMessage chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(
+                chatRoom.getId());
 
-            if(chatMessage == null) {
+            if (chatMessage == null) {
                 continue;
             }
             chatList.add(ChatListDto.builder()
@@ -48,7 +50,7 @@ public class ChatRoomService {
         Collections.sort(chatList, new Comparator<ChatListDto>() {
             @Override
             public int compare(ChatListDto o1, ChatListDto o2) {
-                if(o1.getLatelySenderDate().isAfter(o2.getLatelySenderDate())) {
+                if (o1.getLatelySenderDate().isAfter(o2.getLatelySenderDate())) {
                     return -1;
                 } else {
                     return 1;
@@ -59,27 +61,37 @@ public class ChatRoomService {
         return chatList;
     }
 
-    public ChatRoomDto findByRoomName(String roomName, String userName) {
+    public ChatRoomDetailDto findByRoomName(String roomName, String userName) {
         Optional<ChatRoom> optionalChatRoom = chatRoomRepository.findByRoomName(roomName);
-        if(optionalChatRoom.isEmpty()) {
-            throw new RuntimeException("해당 대화방이 존재하지 않습니다.");
-        }
         ChatRoom chatRoom = optionalChatRoom.get();
 
-        Optional<RegisterRoom> optionalRegisterRoom = registerRoomRepository.findByUserNameAndChatRoom_Id(userName,
-            chatRoom.getId());
-        if(optionalRegisterRoom.isEmpty()) {
-            throw new RuntimeException("해당 대화방이 존재하지 않습니다.");
-        }
-        RegisterRoom registerRoom = optionalRegisterRoom.get();
+        List<ChatMessage> messages = chatRoom.getMessages();
+        Collections.sort(messages, (m1, m2) -> {
+            if (m1.getId() > m2.getId()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
 
-        return ChatRoomDto.builder()
-            .roomName(chatRoom.getRoomName())
-            .userName(registerRoom.getUserName())
+        List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
+            chatRoom.getId());
+        String receiverUser = "";
+
+        for (RegisterRoom room : registerRooms) {
+            if (!room.getUserName().equals(userName)) {
+                receiverUser = room.getUserName();
+            }
+        }
+
+        return ChatRoomDetailDto.builder()
+            .messages(messages)
+            .senderName(userName)
+            .receiverName(receiverUser)
             .build();
     }
 
-    public String connectRoomBetweenUsers(String receiver, String sender) {
+    public void connectRoomBetweenUsers(String receiver, String sender) {
         ChatRoom chatRoom = new ChatRoom();
         String roomId = UUID.randomUUID().toString();
         chatRoom.setRoomName(roomId);
@@ -89,8 +101,6 @@ public class ChatRoomService {
 
         createRoom(sender, chatRoom);
         chatRoomRepository.save(chatRoom);
-
-        return chatRoom.getRoomName();
     }
 
     private void createRoom(String userName, ChatRoom chatRoom) {
@@ -113,8 +123,8 @@ public class ChatRoomService {
 
     private String findAnotherUser(Long roomId, String myId) {
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(roomId);
-        for(RegisterRoom room : registerRooms) {
-            if(!myId.equals(room.getUserName())) {
+        for (RegisterRoom room : registerRooms) {
+            if (!myId.equals(room.getUserName())) {
                 return room.getUserName();
             }
         }

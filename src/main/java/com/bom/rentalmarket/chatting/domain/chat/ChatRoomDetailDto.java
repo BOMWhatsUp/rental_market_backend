@@ -2,15 +2,18 @@ package com.bom.rentalmarket.chatting.domain.chat;
 
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChatRoomDetailDto {
     private String senderName;
-    private String senderEmail;
-    private String receiver;
+    private String receiverName;
+
     private List<ChatMessage> messages;
-    private String chatRoomName;
 }

@@ -1,5 +1,6 @@
 package com.bom.rentalmarket.chatting.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -22,6 +23,7 @@ public class ChatRoom {
 
     private String roomName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
     private List<ChatMessage> messages = new ArrayList<>();
 }
