@@ -44,13 +44,14 @@ public class S3Service {
   }
 
   public String upload(MultipartFile file) throws IOException {
-    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+    String fileName = UUID.randomUUID().toString().substring(0, 20);
 
     ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentLength(file.getSize());
     metadata.setContentType(file.getContentType());
 
     s3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), metadata));
-    return s3Client.getUrl(bucket, fileName).toString();
+
+    return fileName;
   }
 }

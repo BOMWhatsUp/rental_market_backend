@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @Builder
@@ -24,27 +23,35 @@ public class CreateProductForm {
   private String sellerId;
 
   @NotBlank
+  private String nickname;
+
+  @NotBlank
   private String title;
 
   @NotBlank
-  private String contents;
+  private String content;
 
   @NotBlank
   private List<String> imageUrls;
 
+  private String mainImageUrl;
+
   @NotBlank
-  private String region;
+  private String wishRegion;
 
   @NotNull
-  private MaxPeriodType maxPeriod;
+  private MaxPeriodType maxRentalPeriod;
 
   @NotNull
   private CategoryType categoryName;
 
   @NotNull
-  private String unitPrice;
+  private Long unitPrice;
 
   @NotNull
   private StatusType status;
 
 }
+
+
+

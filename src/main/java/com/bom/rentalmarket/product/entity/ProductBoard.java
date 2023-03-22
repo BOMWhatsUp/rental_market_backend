@@ -29,7 +29,7 @@ import org.hibernate.envers.AuditOverride;
 @NoArgsConstructor
 @AuditOverride(forClass = BaseEntity.class)
 @Table(name = "ProductBoard")
-public class ProductBoard extends BaseEntity{
+public class ProductBoard extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +39,7 @@ public class ProductBoard extends BaseEntity{
   private CategoryType categoryName;
 
   @Enumerated(EnumType.STRING)
-  private MaxPeriodType maxPeriod;
+  private MaxPeriodType maxRentalPeriod;
 
   @Enumerated(EnumType.STRING)
   private StatusType status;
@@ -47,13 +47,21 @@ public class ProductBoard extends BaseEntity{
   @ElementCollection
   private List<String> imageUrls;
 
+  private String mainImageUrl;
+
   private Long unitPrice;
 
   private String sellerId;
+
   private String title;
-  private String contents;
-  private String region;
+
+  private String content;
+
+  private String wishRegion;
+
+  private String nickname;
 
   private LocalDateTime createdAt;
+
   private LocalDateTime modifiedAt;
 }
