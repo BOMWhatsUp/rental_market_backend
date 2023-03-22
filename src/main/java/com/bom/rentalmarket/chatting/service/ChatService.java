@@ -18,7 +18,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
 
     public void save(ChatMessageForm form) {
-        ChatRoom chatRoom = this.findByRoomName(form.getRoomName())
+        ChatRoom chatRoom = this.findByRoomName(form.getRoomId())
             .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방이므로 메세지를 보낼 수 없습니다."));
 
         ChatMessage chatMessage = ChatMessage.builder()
@@ -30,7 +30,7 @@ public class ChatService {
         chatMessageRepository.save(chatMessage);
     }
 
-    private Optional<ChatRoom> findByRoomName(String roomName) {
-        return chatRoomRepository.findByRoomName(roomName);
+    private Optional<ChatRoom> findByRoomName(Long roomId) {
+        return chatRoomRepository.findById(roomId);
     }
 }

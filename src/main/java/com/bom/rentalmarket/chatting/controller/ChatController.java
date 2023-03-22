@@ -20,6 +20,6 @@ public class ChatController {
     @MessageMapping("/chat/message")
     public void sendMessage(ChatMessageForm form) {
         chatService.save(form);
-        simpMessagingTemplate.convertAndSend("/sub" + form.getRoomName(), form);
+        simpMessagingTemplate.convertAndSend("/sub" + form.getRoomId(), form);
     }
 }
