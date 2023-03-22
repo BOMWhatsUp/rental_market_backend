@@ -2,6 +2,7 @@ package com.bom.rentalmarket.product.service;
 
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.model.CreateProductForm;
+import com.bom.rentalmarket.product.model.GetProductForm;
 import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.type.StatusType;
 import com.bom.rentalmarket.s3.S3Service;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,8 @@ public class ProductService {
   private final S3Service s3Service;
   private final ModelMapper modelMapper;
 
-  public ProductBoard createRental(CreateProductForm form, MultipartFile[] imageFiles)
+  public ProductBoard createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
+      int mainImageIndex)
       throws IOException {
     List<String> imageUrls = new ArrayList<>();
     for (MultipartFile file : imageFiles) {
@@ -32,21 +35,37 @@ public class ProductService {
 
     ProductBoard productBoard = modelMapper.typeMap(CreateProductForm.class, ProductBoard.class)
         .addMapping(CreateProductForm::getTitle, ProductBoard::setTitle)
-        .addMapping(CreateProductForm::getContents, ProductBoard::setContents)
+        .addMapping(CreateProductForm::getContent, ProductBoard::setContent)
         .addMapping(CreateProductForm::getUnitPrice, ProductBoard::setUnitPrice)
-        .addMapping(CreateProductForm::getRegion, ProductBoard::setRegion)
+        .addMapping(CreateProductForm::getWishRegion, ProductBoard::setWishRegion)
         .addMapping(CreateProductForm::getCategoryName, ProductBoard::setCategoryName)
-        .addMapping(CreateProductForm::getMaxPeriod, ProductBoard::setMaxPeriod)
+        .addMapping(CreateProductForm::getMaxRentalPeriod, ProductBoard::setMaxRentalPeriod)
         .addMapping(CreateProductForm::getSellerId, ProductBoard::setSellerId)
+        .addMapping(CreateProductForm::getNickname, ProductBoard::setNickname)
         .addMappings(mapper -> mapper.skip(ProductBoard::setId))
-        .addMappings(mapper -> mapper.skip(ProductBoard::setModifiedAt))
         .map(form);
 
     productBoard.setCreatedAt(LocalDateTime.now());
+    productBoard.setModifiedAt(LocalDateTime.now());
     productBoard.setImageUrls(imageUrls);
     productBoard.setStatus(StatusType.AVAILABLE);
+
+    //대표이미지 추가 부분
+    if (mainImageIndex >= 0 && mainImageIndex < imageUrls.size()) {
+      String mainImageUrl = imageUrls.get(mainImageIndex);
+      productBoard.setMainImageUrl(mainImageUrl);
+    }
 
     return productRepository.save(productBoard);
   }
 
+  public List<GetProductForm> getProducts() {
+    List<ProductBoard> products = productRepository.findAll();
+
+    return products.stream()
+        .map(GetProductForm::from)
+        .collect(Collectors.toList());
+  }
+
 }
+
