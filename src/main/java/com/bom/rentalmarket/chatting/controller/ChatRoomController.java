@@ -24,9 +24,9 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @GetMapping("/room")
-    public ResponseEntity<ChatRoomDetailDto> getRoomDetail(@RequestParam(value = "roomName") String roomName) {
+    public ResponseEntity<ChatRoomDetailDto> getRoomDetail(@RequestParam(value = "roomId") Long roomId) {
         String userName = "seller";
-        ChatRoomDetailDto chatRoomDetail = chatRoomService.findByRoomName(roomName, userName);
+        ChatRoomDetailDto chatRoomDetail = chatRoomService.roomDetail(roomId, userName);
 
         return ResponseEntity.ok(chatRoomDetail);
     }
@@ -46,9 +46,9 @@ public class ChatRoomController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/room/{roomName}")
-    public ResponseEntity<Void> deleteRoom(@PathVariable String roomName) {
-        chatRoomService.deleteRoom(roomName);
+    @DeleteMapping("/room/{roomId}")
+    public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
+        chatRoomService.deleteRoom(roomId);
 
         return ResponseEntity.ok().build();
     }

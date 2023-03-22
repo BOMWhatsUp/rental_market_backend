@@ -47,32 +47,23 @@ public class ChatRoomService {
                 .build());
         }
 
-        Collections.sort(chatList, new Comparator<ChatListDto>() {
-            @Override
-            public int compare(ChatListDto o1, ChatListDto o2) {
-                if (o1.getLatelySenderDate().isAfter(o2.getLatelySenderDate())) {
-                    return -1;
-                } else {
-                    return 1;
-                }
+        chatList.sort((o1, o2) -> {
+            if (o1.getLatelySenderDate().isAfter(o2.getLatelySenderDate())) {
+                return -1;
+            } else {
+                return 1;
             }
         });
 
         return chatList;
     }
 
-    public ChatRoomDetailDto findByRoomName(String roomName, String userName) {
-        Optional<ChatRoom> optionalChatRoom = chatRoomRepository.findByRoomName(roomName);
+    public ChatRoomDetailDto roomDetail(Long roomId, String userName) {
+        Optional<ChatRoom> optionalChatRoom = chatRoomRepository.findById(roomId);
         ChatRoom chatRoom = optionalChatRoom.get();
 
         List<ChatMessage> messages = chatRoom.getMessages();
-        Collections.sort(messages, (m1, m2) -> {
-            if (m1.getId() > m2.getId()) {
-                return -1;
-            } else {
-                return 1;
-            }
-        });
+        messages.sort((m1, m2) -> m2.getId().compareTo(m1.getId()));
 
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
             chatRoom.getId());
@@ -93,8 +84,6 @@ public class ChatRoomService {
 
     public void connectRoomBetweenUsers(String receiver, String sender) {
         ChatRoom chatRoom = new ChatRoom();
-        String roomId = UUID.randomUUID().toString();
-        chatRoom.setRoomName(roomId);
 
         createRoom(receiver, chatRoom);
         chatRoomRepository.save(chatRoom);
@@ -109,8 +98,8 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public void deleteRoom(String roomName) {
-        ChatRoom chatRoom = chatRoomRepository.findByRoomName(roomName)
+    public void deleteRoom(Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
             .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
             chatRoom.getId());
