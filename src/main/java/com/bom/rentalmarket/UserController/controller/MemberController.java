@@ -64,7 +64,6 @@ public class MemberController {
      닉네임은 중복 불가까지..
      */
 
-
     @PutMapping("/users/modify/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id
             , @RequestBody @Valid MemberUpdate memberUpdate
@@ -90,7 +89,6 @@ public class MemberController {
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);
-
         return ResponseEntity.ok().build();
     }
 
@@ -229,5 +227,7 @@ public class MemberController {
 //
 //        return ResponseEntity.ok().build();
 //    }
+
+    //
 
 }
