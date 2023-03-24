@@ -2,14 +2,13 @@ package com.bom.rentalmarket.product.controller;
 
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.model.CreateProductForm;
-import com.bom.rentalmarket.product.model.GetProductForm;
-import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.service.ProductService;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -21,23 +20,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
-@RequestMapping("/product")
+@RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
 
   private final ProductService productService;
-  private final ProductRepository productRepository;
 
 
   @GetMapping
-  public ResponseEntity<List<GetProductForm>> getProducts(
-      @RequestParam(required = false) CategoryType categoryName,
+  public ResponseEntity<Map<String, Object>> getProducts(
+      @RequestParam(value = "category-name", required = false) CategoryType categoryName,
       @RequestParam(required = false) StatusType status,
       @RequestParam(required = false) String keyword,
-      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "10") int size) {
-    List<GetProductForm> productList = productService.getProducts();
-    return ResponseEntity.ok(productList);
+    Map<String, Object> productList = productService.getProducts(categoryName, status, keyword, page, size);
+    return ResponseEntity.ok().body(productList);
   }
 
   @GetMapping("/create")
