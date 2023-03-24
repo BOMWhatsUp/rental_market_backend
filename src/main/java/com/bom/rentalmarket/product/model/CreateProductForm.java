@@ -3,6 +3,7 @@ package com.bom.rentalmarket.product.model;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.MaxPeriodType;
 import com.bom.rentalmarket.product.type.StatusType;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -31,7 +32,6 @@ public class CreateProductForm {
   @NotBlank
   private String content;
 
-  @NotBlank
   private List<String> imageUrls;
 
   private String mainImageUrl;
@@ -51,6 +51,9 @@ public class CreateProductForm {
   @NotNull
   private StatusType status;
 
+  private LocalDateTime createdAt;
+
+  private LocalDateTime modifiedAt;
 }
 
 
