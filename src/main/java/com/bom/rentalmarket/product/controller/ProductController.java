@@ -47,11 +47,11 @@ public class ProductController {
   }
 
 
-  @GetMapping("/create")
-  public String getCreateProduct() {
+//   @GetMapping("/create")
+//   public String getCreateProduct() {
 
-    return "create";
-  }
+//     return "create";
+//   }
 
   @PostMapping("/create")
   public ResponseEntity<CreateProductForm> createProduct(
