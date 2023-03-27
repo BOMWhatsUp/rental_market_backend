@@ -24,28 +24,30 @@ public class GetProductDetailForm {
   private String nickname;
   private String title;
   private String content;
-  private List<String> ImageUrls;
+  private List<String> imageUrls;
   private String wishRegion;
   private MaxPeriodType maxRentalPeriod;
   private CategoryType categoryName;
   private Long unitPrice;
   private StatusType status;
   private LocalDateTime modifiedAt;
+  private LocalDateTime returnDate;
 
-  public static GetProductDetailForm from(ProductBoard productBoard) {
+  public static GetProductDetailForm from(ProductBoard productBoard, LocalDateTime returnDate) {
     return GetProductDetailForm.builder()
         .id(productBoard.getId())
         .sellerId(productBoard.getSellerId())
         .nickname(productBoard.getNickname())
         .title(productBoard.getTitle())
         .content(productBoard.getContent())
-        .ImageUrls(productBoard.getImageUrls())
+        .imageUrls(productBoard.getImageUrls())
         .wishRegion(productBoard.getWishRegion())
         .maxRentalPeriod(productBoard.getMaxRentalPeriod())
         .categoryName(productBoard.getCategoryName())
         .unitPrice(productBoard.getUnitPrice())
         .status(productBoard.getStatus())
         .modifiedAt(productBoard.getModifiedAt())
+        .returnDate(returnDate)
         .build();
   }
 

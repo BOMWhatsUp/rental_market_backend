@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,11 +39,11 @@ public class ProductController {
     return ResponseEntity.ok().body(productList);
   }
 
-  //  @GetMapping
-  public ResponseEntity<List<GetProductDetailForm>> getDetailProduct(
-      @RequestParam int id) {
-    List<GetProductDetailForm> productList = productService.getDetailProduct();
-    return null;
+  @GetMapping("/{productId}/detail")
+  public ResponseEntity<GetProductDetailForm> getDetailProduct(
+      @PathVariable Long productId) {
+    GetProductDetailForm product = productService.getDetailProduct(productId);
+    return ResponseEntity.ok().body(product);
   }
 
 

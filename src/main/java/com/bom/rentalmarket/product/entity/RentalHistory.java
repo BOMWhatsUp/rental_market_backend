@@ -1,6 +1,5 @@
 package com.bom.rentalmarket.product.entity;
 
-import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,13 +28,9 @@ public class RentalHistory {
   @JoinColumn(name = "product_id")
   private ProductBoard productId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private Member userId;
+  private String userId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "seller_id")
-  private Member sellerId;
+  private String sellerId;
 
   private Long totalPrice;
 
