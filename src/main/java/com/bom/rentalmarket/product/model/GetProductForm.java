@@ -31,8 +31,9 @@ public class GetProductForm {
   private StatusType status;
   private LocalDateTime createdAt;
   private LocalDateTime modifiedAt;
+  private LocalDateTime returnDate;
 
-  public static GetProductForm from(ProductBoard productBoard) {
+  public static GetProductForm from(ProductBoard productBoard, LocalDateTime returnDate) {
     return GetProductForm.builder()
         .id(productBoard.getId())
         .sellerId(productBoard.getSellerId())
@@ -45,6 +46,7 @@ public class GetProductForm {
         .categoryName(productBoard.getCategoryName())
         .unitPrice(productBoard.getUnitPrice())
         .status(productBoard.getStatus())
+        .returnDate(returnDate)
         .createdAt(productBoard.getCreatedAt())
         .modifiedAt(productBoard.getModifiedAt())
         .build();

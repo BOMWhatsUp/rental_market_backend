@@ -1,10 +1,12 @@
 package com.bom.rentalmarket.product.service;
 
 import com.bom.rentalmarket.product.entity.ProductBoard;
+import com.bom.rentalmarket.product.entity.RentalHistory;
 import com.bom.rentalmarket.product.model.CreateProductForm;
 import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
 import com.bom.rentalmarket.product.repository.ProductRepository;
+import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
 import com.bom.rentalmarket.s3.S3Service;
@@ -12,6 +14,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductService {
 
   private final ProductRepository productRepository;
+  private final RentalHistoryRepository rentalHistoryRepository;
   private final S3Service s3Service;
 
   public CreateProductForm createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
@@ -88,9 +93,11 @@ public class ProductService {
     if (fileType != null) {
       extension = fileType.substring(fileType.indexOf('/') + 1);
     } else {
-      extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.') + 1);
+      extension = file.getOriginalFilename()
+          .substring(file.getOriginalFilename().lastIndexOf('.') + 1);
     }
-    return extension.equals("jpeg") || extension.equals("jpg") || extension.equals("png") || extension.equals("gif");
+    return extension.equals("jpeg") || extension.equals("jpg") || extension.equals("png")
+        || extension.equals("gif");
   }
 
 
@@ -100,12 +107,32 @@ public class ProductService {
     List<ProductBoard> productBoardList = productRepository.searchFilters(categoryName,
         status, keyword, pageNo, pageSize);
 
-    return productBoardList.stream().map(GetProductForm::from).collect(Collectors.toList());
+    return productBoardList.stream().map(productBoard -> {
+        LocalDateTime returnDate = null;
+        if (productBoard.getStatus() == StatusType.RENTED) {
+          Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
+              productBoard);
+          returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
+        }
+        return GetProductForm.from(productBoard, returnDate);
+      }).collect(Collectors.toList());
   }
 
-  public List<GetProductDetailForm> getDetailProduct() {
+  public GetProductDetailForm getDetailProduct(Long productId) {
 
-    return null;
+    Optional<ProductBoard> optionalProductBoard = productRepository.findById(productId);
+    if (optionalProductBoard.isEmpty()) {
+      throw new NoSuchElementException("Product with ID" + productId);
+    }
+
+    ProductBoard productBoard = optionalProductBoard.get();
+
+    Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
+        productBoard);
+
+    LocalDateTime returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
+
+    return GetProductDetailForm.from(productBoard, returnDate);
   }
 }
 
