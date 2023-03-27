@@ -49,7 +49,5 @@ public class GetProductForm {
         .modifiedAt(productBoard.getModifiedAt())
         .build();
   }
-
-
 }
 
