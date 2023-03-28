@@ -40,9 +40,6 @@ public class ProductGetServiceTest {
         (long)pageNo, (long)pageSize);
 
     // then
-
-
-    // then
     assertNotNull(productList); // products map 객체가 null이 아닌지 확인
     assertEquals(3, productList.size()); // productList의 크기가 3인지 확인 - 더미 데이터는 위의 조건은 3개임
 

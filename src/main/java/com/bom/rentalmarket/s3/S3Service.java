@@ -35,11 +35,11 @@ public class S3Service {
 
   @PostConstruct
   public void setS3Client() {
-    AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
+    AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 
     s3Client = AmazonS3ClientBuilder.standard()
         .withCredentials(new AWSStaticCredentialsProvider(credentials))
-        .withRegion(this.region)
+        .withRegion(region)
         .build();
   }
 

@@ -14,6 +14,9 @@ plugins {
 group 'org.bom'
 version '1.0-SNAPSHOT'
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
 repositories {
     mavenCentral()
 }
@@ -25,9 +28,6 @@ dependencies {
 //    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.data:spring-data-envers'
-
-    //Modelmapper 추가
-    implementation 'org.modelmapper:modelmapper:2.4.4'
 
     // stomp
     implementation 'org.webjars:stomp-websocket:2.3.3'
@@ -54,6 +54,8 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
 
+    //Mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     //h2
     runtimeOnly 'com.h2database:h2'

@@ -3,8 +3,10 @@ package com.bom.rentalmarket.product.service;
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.entity.RentalHistory;
 import com.bom.rentalmarket.product.model.CreateProductForm;
+import com.bom.rentalmarket.product.model.CreateRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
+import com.bom.rentalmarket.product.model.GetTransactionForm;
 import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
 import com.bom.rentalmarket.product.type.CategoryType;
@@ -108,17 +110,17 @@ public class ProductService {
         status, keyword, pageNo, pageSize);
 
     return productBoardList.stream().map(productBoard -> {
-        LocalDateTime returnDate = null;
-        if (productBoard.getStatus() == StatusType.RENTED) {
-          Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
-              productBoard);
-          returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
-        }
-        return GetProductForm.from(productBoard, returnDate);
-      }).collect(Collectors.toList());
+      LocalDateTime returnDate = null;
+      if (productBoard.getStatus() == StatusType.RENTED) {
+        Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
+            productBoard);
+        returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
+      }
+      return GetProductForm.from(productBoard, returnDate);
+    }).collect(Collectors.toList());
   }
 
-  public GetProductDetailForm getDetailProduct(Long productId) {
+  public GetProductDetailForm getProductDetail(Long productId) {
 
     Optional<ProductBoard> optionalProductBoard = productRepository.findById(productId);
     if (optionalProductBoard.isEmpty()) {
@@ -133,6 +135,24 @@ public class ProductService {
     LocalDateTime returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
 
     return GetProductDetailForm.from(productBoard, returnDate);
+  }
+
+  public GetTransactionForm getProductTransaction(Long productId) {
+
+    Optional<ProductBoard> optionalProductBoard = productRepository.findById(productId);
+
+    if (optionalProductBoard.isEmpty()) {
+      throw new NoSuchElementException("Product with ID" + productId);
+    }
+
+    ProductBoard productBoard = optionalProductBoard.get();
+
+    return GetTransactionForm.from(productBoard);
+  }
+
+  public CreateRentalHistoryForm createRentalHistory(
+      CreateRentalHistoryForm createRentalHistoryForm) {
+    return null;
   }
 }
 
