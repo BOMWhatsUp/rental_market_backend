@@ -1,8 +1,10 @@
 package com.bom.rentalmarket.product.controller;
 
 import com.bom.rentalmarket.product.model.CreateProductForm;
+import com.bom.rentalmarket.product.model.CreateRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
+import com.bom.rentalmarket.product.model.GetTransactionForm;
 import com.bom.rentalmarket.product.service.ProductService;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
@@ -40,17 +42,25 @@ public class ProductController {
   }
 
   @GetMapping("/{productId}/detail")
-  public ResponseEntity<GetProductDetailForm> getDetailProduct(
+  public ResponseEntity<GetProductDetailForm> getProductDetail(
       @PathVariable Long productId) {
-    GetProductDetailForm product = productService.getDetailProduct(productId);
+    GetProductDetailForm product = productService.getProductDetail(productId);
     return ResponseEntity.ok().body(product);
   }
 
+  @GetMapping("/{productId}/transaction")
+  public ResponseEntity<GetTransactionForm> getProductTransaction(
+      @PathVariable Long productId) {
+    GetTransactionForm product = productService.getProductTransaction(productId);
+    return ResponseEntity.ok().body(product);
+  }
 
-  @GetMapping("/create")
-  public String getCreateProduct() {
-
-    return "create";
+  @PostMapping("/transaction/")
+  public ResponseEntity<CreateRentalHistoryForm> createRentalHistory(
+      @ModelAttribute CreateRentalHistoryForm createRentalHistoryForm) {
+    CreateRentalHistoryForm addHistory = productService.createRentalHistory(
+        createRentalHistoryForm);
+    return ResponseEntity.ok(addHistory);
   }
 
   @PostMapping("/create")

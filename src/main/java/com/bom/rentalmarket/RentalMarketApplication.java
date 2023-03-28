@@ -2,13 +2,15 @@ package com.bom.rentalmarket;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-@SpringBootApplication
+@EnableWebMvc
+@SpringBootApplication(exclude = {
+    org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration.class,
+    org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration.class,
+    org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration.class
+})
 public class RentalMarketApplication {
-
-  static {
-    System.setProperty("com.amazonaws.sdk.disableEc2Metadata", "true");
-  }
 
   public static void main(String[] args) {
     SpringApplication.run(RentalMarketApplication.class, args);
