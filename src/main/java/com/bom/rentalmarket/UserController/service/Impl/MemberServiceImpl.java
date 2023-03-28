@@ -1,6 +1,7 @@
 package com.bom.rentalmarket.UserController.service.Impl;
 
 import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException;
+import com.bom.rentalmarket.UserController.domain.exception.ExistsNickNameException;
 import com.bom.rentalmarket.UserController.domain.exception.PasswordNotMatchException;
 import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
 import com.bom.rentalmarket.UserController.domain.model.MemberInput;
@@ -9,12 +10,8 @@ import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.UserController.service.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,37 +21,31 @@ import java.util.UUID;
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
 
+
     private String getEncryptPassword(String password) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         return bCryptPasswordEncoder.encode(password);
     }
-
     @Override //회원가입
     public Member getAddUser(MemberInput memberInput) {
 
-        // 중복체크
-        if (memberRepository.countByEmail(memberInput.getEmail()) > 0
-                || memberRepository.countByNickName(memberInput.getNickName()) > 0) {
-            throw new ExistsEmailException("이미 존재한 회원 입니다.");
+        // 중복체크 email, nickName
+        if (memberRepository.countByEmail(memberInput.getEmail()) > 0 ) {
+            throw new ExistsEmailException("이미 존재한 email 입니다.");
+        } else if (memberRepository.countByNickName(memberInput.getNickName()) > 0) {
+            throw new ExistsNickNameException("이미 존재한 nickName 입니다.");
         }
 
         String encPassword = getEncryptPassword(memberInput.getPassword());
+
         return Member.builder()
                 .email(memberInput.getEmail())
                 .nickName(memberInput.getNickName())
                 .password(encPassword)
-                .regin(memberInput.getRegin())
+                .region(memberInput.getRegin())
                 .regDate(LocalDateTime.now())
-                .filename(memberInput.getFilename())
                 .build();
     }
-
-
-    @ExceptionHandler(value = {UsernameNotFoundException.class, PasswordNotMatchException.class})
-    public ResponseEntity<?> UserNotFoundExceptionHandler(RuntimeException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
 
     @Override
     public Member getResetUserPassword(Long id) {
@@ -96,6 +87,7 @@ public class MemberServiceImpl implements MemberService {
 
         return Member.builder().build();
     }
+
 
 }
 

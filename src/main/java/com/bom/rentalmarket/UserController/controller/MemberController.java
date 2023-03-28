@@ -10,32 +10,25 @@ import com.bom.rentalmarket.UserController.domain.exception.PasswordNotMatchExce
 import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
 import com.bom.rentalmarket.UserController.domain.model.*;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
-import com.bom.rentalmarket.UserController.domain.util.JWTUtils;
 import com.bom.rentalmarket.UserController.domain.util.PasswordUtils;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.UserController.service.MemberService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -43,6 +36,19 @@ import java.util.UUID;
 public class MemberController {
     private final MemberRepository memberRepository;
     private final MemberService memberService;
+
+    // email 중복  error Message 보내주는 로직
+    @ExceptionHandler(ExistsEmailException.class)
+    public ResponseEntity<?> ExistsEmailExceptionHandler(ExistsEmailException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // nickName 중복  error Message 보내주는 로직
+
+    @ExceptionHandler(ExistsNickNameException.class)
+    public ResponseEntity<?> ExistsNameExceptionHandler(ExistsNickNameException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
     // 회원가입
     @PostMapping("/users/signup")
@@ -54,16 +60,13 @@ public class MemberController {
             });
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
+
         Member member = memberService.getAddUser(memberInput);
 
         memberRepository.save(member);
         return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(ExistsEmailException.class)
-    public ResponseEntity<?> ExistsEmailExceptionHandler(ExistsEmailException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
 
      /*
      회원 정보 수정 하는 로직
@@ -71,59 +74,10 @@ public class MemberController {
      닉네임은 중복 불가까지..
      */
 
-    String getNewSaveFile(String basePath, String originalFilename) { // originalFilename 파일 확장자
-
-        LocalDate now = LocalDate.now();
-
-        String[] dirs = {
-                String.format("%s/%d/", basePath, now.getYear()),
-                String.format("%s/%d/%02d/", basePath, now.getYear(), now.getMonthValue()),
-                String.format("%s/%d/%02d/%02d", basePath, now.getYear(), now.getMonthValue(),
-                        now.getDayOfMonth())};
-
-        for (String dir : dirs) {
-            File file = new File(dir);
-            if (!file.isDirectory()) {
-                file.mkdir();
-            }
-        }
-
-        String fileExtension = "";
-        if (originalFilename != null) {
-            int dotPos = originalFilename.lastIndexOf(".");
-            if (dotPos > -1) {
-                fileExtension = originalFilename.substring(dotPos + 1);
-            }
-        }
-
-        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        String newFilename = String.format("%s%s", dirs[2], uuid);
-        if (fileExtension.length() > 0) {
-            newFilename += "." + fileExtension;
-        }
-
-        return newFilename;
-    }
-
     @PutMapping("/users/modify/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id
             , @RequestBody @Valid MemberUpdate memberUpdate
-            , MultipartFile imageFile
             , Errors errors) {
-
-        String saveFileName = "";
-        if (imageFile != null) {
-            String originalFilename = imageFile.getOriginalFilename();
-            String basePath = "C:/SpringBoot/rental_market_backend/ImageFile";
-            saveFileName = getNewSaveFile(basePath, originalFilename);
-            try {
-                File newFile = new File(saveFileName);
-                FileCopyUtils.copy(imageFile.getInputStream(), new FileOutputStream(newFile));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        memberUpdate.setFilename(saveFileName);
 
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
@@ -141,19 +95,16 @@ public class MemberController {
         }
 
         member.setNickName(memberUpdate.getNickName());
-        member.setRegin(memberUpdate.getRegin());
-        member.setFilename(memberUpdate.getFilename());
+        member.setRegion(memberUpdate.getRegin());
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);
-
         return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(value = {UsernameNotFoundException.class, PasswordNotMatchException.class})
-    public ResponseEntity<?> UserNotFoundExceptionHandler(RuntimeException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
+
+
+
 
     // 회원 비밀번호 초기화
     @GetMapping("/user/password/reset/{id}")
@@ -239,23 +190,26 @@ public class MemberController {
         return ResponseEntity.ok().body(MemberLoginToken.builder().token(token).build());
     }
 
-
     // JWT 토큰을 재발행 하는 로직
-    @PatchMapping("/users/refreshtoken")
+    @PatchMapping("/users/refreshToken")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
-        String token = request.getHeader("F-TOKEN");
+        String token = request.getHeader("BOM-TOKEN");
         String email = "";
         try {
-            email = JWTUtils.getIssuer(token);
+            email = JWT.require(Algorithm.HMAC512("BOM".getBytes()))
+                    .build()
+                    .verify(token)
+                    .getIssuer();
         } catch (SignatureVerificationException e) {
             throw new PasswordNotMatchException("비밀번호가 일치하지 않습니다.");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Token 값을 헤더에 보내주세요");
         }
 
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자 정보가 없습니다."));
 
         LocalDateTime localDateTime = LocalDateTime.now().plusMonths(1);
-
         Date expireDate = java.sql.Timestamp.valueOf(localDateTime);
 
         String newToken = JWT.create()
@@ -282,5 +236,7 @@ public class MemberController {
 //
 //        return ResponseEntity.ok().build();
 //    }
+
+    //
 
 }

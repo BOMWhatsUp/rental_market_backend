@@ -17,7 +17,6 @@ public class Member  {
     // 회원가입 페이지 활용
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Long id;
 
     @Column
@@ -30,7 +29,7 @@ public class Member  {
     private String password;
 
     @Column
-    private String regin;
+    private String region;
 
     @Column
     private LocalDateTime regDate;// 회원가입 날짜
@@ -38,10 +37,18 @@ public class Member  {
     @Column
     private LocalDateTime updateDate; // 회원정보 수정 날짜
 
+    @Column
+    private String title; // url title
 
-    private String filename;
-
-
-
+    @Column
+    private String imageUrl; // url 경로
+    @Override
+    public String toString() {
+        return "FileEntity{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", s3Url='" + imageUrl + '\'' +
+                '}';
+    }
 
 }
