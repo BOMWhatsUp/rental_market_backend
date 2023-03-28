@@ -33,15 +33,6 @@ public interface MemberService {
     */
    Member getUpdateMemberPassword(Long id, MemberInputPassword memberInputPassword);
 
-   /*
-   회원탈퇴 -> 회원이 게시물을 올렸을 땐 회원 삭제가 안된다.
-    */
-
-
-   /*
-    email, password 를 입력하여 -> JWT 토큰 발행 -> 1달간 유효성있는 JWT Token 발행
-    */
-
 
 
 

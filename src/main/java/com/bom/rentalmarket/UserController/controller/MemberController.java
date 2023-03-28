@@ -13,6 +13,7 @@ import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.domain.util.PasswordUtils;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.UserController.service.MemberService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,18 @@ public class MemberController {
     private final MemberRepository memberRepository;
     private final MemberService memberService;
 
+    // email 중복  error Message 보내주는 로직
+    @ExceptionHandler(ExistsEmailException.class)
+    public ResponseEntity<?> ExistsEmailExceptionHandler(ExistsEmailException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // nickName 중복  error Message 보내주는 로직
+
+    @ExceptionHandler(ExistsNickNameException.class)
+    public ResponseEntity<?> ExistsNameExceptionHandler(ExistsNickNameException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
     // 회원가입
     @PostMapping("/users/signup")
@@ -47,16 +60,13 @@ public class MemberController {
             });
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
+
         Member member = memberService.getAddUser(memberInput);
 
         memberRepository.save(member);
         return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(ExistsEmailException.class)
-    public ResponseEntity<?> ExistsEmailExceptionHandler(ExistsEmailException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
 
      /*
      회원 정보 수정 하는 로직
@@ -92,10 +102,9 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(value = {UsernameNotFoundException.class, PasswordNotMatchException.class})
-    public ResponseEntity<?> UserNotFoundExceptionHandler(RuntimeException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
+
+
+
 
     // 회원 비밀번호 초기화
     @GetMapping("/user/password/reset/{id}")
