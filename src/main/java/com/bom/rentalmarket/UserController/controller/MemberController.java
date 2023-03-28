@@ -95,7 +95,7 @@ public class MemberController {
         }
 
         member.setNickName(memberUpdate.getNickName());
-        member.setRegin(memberUpdate.getRegin());
+        member.setRegion(memberUpdate.getRegin());
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);

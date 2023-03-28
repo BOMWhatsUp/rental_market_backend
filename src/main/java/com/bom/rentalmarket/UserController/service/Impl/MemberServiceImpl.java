@@ -42,7 +42,7 @@ public class MemberServiceImpl implements MemberService {
                 .email(memberInput.getEmail())
                 .nickName(memberInput.getNickName())
                 .password(encPassword)
-                .regin(memberInput.getRegin())
+                .region(memberInput.getRegin())
                 .regDate(LocalDateTime.now())
                 .build();
     }

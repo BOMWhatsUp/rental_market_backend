@@ -29,7 +29,7 @@ public class Member  {
     private String password;
 
     @Column
-    private String regin;
+    private String region;
 
     @Column
     private LocalDateTime regDate;// 회원가입 날짜
