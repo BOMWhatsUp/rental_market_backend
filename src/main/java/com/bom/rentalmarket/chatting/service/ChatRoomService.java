@@ -2,7 +2,6 @@ package com.bom.rentalmarket.chatting.service;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
-import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDto;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
@@ -10,14 +9,12 @@ import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
 import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import com.bom.rentalmarket.chatting.domain.repository.RegisterRoomRepository;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -83,11 +80,18 @@ public class ChatRoomService {
             .build();
     }
 
-    public void connectRoomBetweenUsers(String receiver, String sender) {
+    public Long connectRoomBetweenUsers(String receiver, String sender) {
+        Long chatRoomId = checkAlreadyRoom(receiver, sender);
+        if(chatRoomId != 0L) {
+            return chatRoomId;
+        }
+
         ChatRoom chatRoom = new ChatRoom();
 
         createRoom(receiver, chatRoom);
         createRoom(sender, chatRoom);
+
+        return chatRoom.getId();
     }
 
     private void createRoom(String userName, ChatRoom chatRoom) {
@@ -115,5 +119,23 @@ public class ChatRoomService {
             }
         }
         return myId;
+    }
+
+    private Long checkAlreadyRoom(String receiver, String sender) {
+        List<RegisterRoom> receiverRooms = registerRoomRepository.findAllByUserName(receiver);
+        Set<Long> receiverChatRooms = new HashSet<>();
+        for(RegisterRoom registerRoom : receiverRooms){
+            receiverChatRooms.add(registerRoom.getChatRoom().getId());
+        }
+
+        List<RegisterRoom> senderRooms = registerRoomRepository.findAllByUserName(sender);
+
+        for(RegisterRoom registerRoom : senderRooms) {
+           if(receiverChatRooms.contains(registerRoom.getChatRoom().getId())) {
+               return registerRoom.getChatRoom().getId();
+           }
+        }
+
+        return 0L;
     }
 }

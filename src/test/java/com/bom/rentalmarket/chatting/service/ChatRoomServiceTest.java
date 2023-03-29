@@ -64,12 +64,12 @@ class ChatRoomServiceTest {
         given(registerRoomRepository.findAllByUserName(anyString()))
             .willReturn(registerRooms);
         given(chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(chatRoom.getId()))
-            .willReturn(ChatMessage.builder()
+            .willReturn(Optional.of(ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sendTime(LocalDateTime.now())
                 .message("hello")
                 .userName("seller")
-                .build());
+                .build()));
         given(registerRoomRepository.findByChatRoom_Id(chatRoom.getId()))
             .willReturn(Arrays.asList(
                 RegisterRoom.builder()
