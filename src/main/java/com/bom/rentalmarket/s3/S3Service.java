@@ -1,57 +1,55 @@
 package com.bom.rentalmarket.s3;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class S3Service {
 
-  private AmazonS3 s3Client;
-
-  @Value("${cloud.aws.credentials.access-key}")
-  private String accessKey;
-
-  @Value("${cloud.aws.credentials.secret-key}")
-  private String secretKey;
+  private final S3Config s3Config;
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
-  @Value("${cloud.aws.region.static}")
-  private String region;
-
-  @PostConstruct
-  public void setS3Client() {
-    AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-
-    s3Client = AmazonS3ClientBuilder.standard()
-        .withCredentials(new AWSStaticCredentialsProvider(credentials))
-        .withRegion(region)
-        .build();
-  }
-
-  public String upload(MultipartFile file) throws IOException {
-    String fileName = UUID.randomUUID().toString().substring(0, 20);
-
+  private String uploadFile(MultipartFile file, String fileName) throws IOException {
     ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentLength(file.getSize());
     metadata.setContentType(file.getContentType());
 
-    s3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), metadata));
+    try {
+      s3Config.amazonS3()
+          .putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), metadata));
+    } catch (AmazonS3Exception e) {
+      throw new IOException("Failed to upload file to S3", e);
+    }
 
     return fileName;
+  }
+
+  public String upload(MultipartFile file) throws IOException {
+    String fileName = UUID.randomUUID().toString().substring(0, 20);
+    return uploadFile(file, fileName);
+  }
+
+  public String update(MultipartFile file, String oldFileName) throws IOException {
+    delete(oldFileName);
+    String fileName = UUID.randomUUID().toString().substring(0, 20);
+    return uploadFile(file, fileName);
+  }
+
+  public void delete(String fileName) {
+    try {
+      s3Config.amazonS3().deleteObject(bucket, fileName);
+    } catch (AmazonS3Exception e) {
+      throw new RuntimeException("Failed to delete file from S3", e);
+    }
   }
 }
