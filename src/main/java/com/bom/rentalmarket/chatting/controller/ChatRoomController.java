@@ -32,9 +32,8 @@ public class ChatRoomController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ChatListDto>> getAllChatRoom() {
-        String userName = "seller";
-        List<ChatListDto> chatList= chatRoomService.findAllRoom(userName);
+    public ResponseEntity<List<ChatListDto>> getAllChatRoom(@RequestParam(value = "userId") String userId) {
+        List<ChatListDto> chatList= chatRoomService.findAllRoom(userId);
 
         return ResponseEntity.ok(chatList);
     }
