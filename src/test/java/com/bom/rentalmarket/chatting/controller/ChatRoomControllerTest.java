@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ChatRoomController.class)
@@ -48,6 +49,7 @@ class ChatRoomControllerTest {
     private ChatRoomRepository chatRoomRepository;
 
     @Test
+    @WithMockUser
     void successCreateChatRoom() throws Exception {
         //given
         String receiver = "receiver";

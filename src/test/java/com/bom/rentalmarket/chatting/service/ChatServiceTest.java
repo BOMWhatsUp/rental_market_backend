@@ -55,7 +55,7 @@ class ChatServiceTest {
         ArgumentCaptor<ChatMessage> captor = ArgumentCaptor.forClass(ChatMessage.class);
 
         //when
-        chatService.save(ChatMessageForm.builder()
+        chatService.saveMessage(ChatMessageForm.builder()
                 .message("hello")
                 .sender("sender")
                 .receiver("receiver")

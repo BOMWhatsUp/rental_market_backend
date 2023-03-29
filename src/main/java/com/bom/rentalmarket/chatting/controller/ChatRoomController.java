@@ -4,8 +4,11 @@ import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomUsers;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,10 +42,13 @@ public class ChatRoomController {
     }
 
     @PostMapping("/room")
-    public ResponseEntity<Void> createRoom(@RequestBody ChatRoomUsers user) {
-        chatRoomService.connectRoomBetweenUsers(user.getReceiverId(), user.getSenderId());
+    public ResponseEntity<?> createRoom(@RequestBody ChatRoomUsers user) {
+        Long roomId = chatRoomService.connectRoomBetweenUsers(user.getReceiverId(), user.getSenderId());
 
-        return ResponseEntity.ok().build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/chat/room?roomId=" + roomId));
+
+        return new ResponseEntity<>(headers, HttpStatus.MOVED_PERMANENTLY);
     }
 
     @DeleteMapping("/room/{roomId}")
