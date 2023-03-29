@@ -34,17 +34,14 @@ public class ChatRoomService {
         for (RegisterRoom room : registerRooms) {
             ChatRoom chatRoom = room.getChatRoom();
             String anotherUserName = this.findAnotherUser(chatRoom.getId(), userName);
-            ChatMessage chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(
+            Optional<ChatMessage> chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(
                 chatRoom.getId());
 
-            if (chatMessage == null) {
-                continue;
-            }
-            chatList.add(ChatListDto.builder()
+            chatMessage.ifPresent(message -> chatList.add(ChatListDto.builder()
                 .receiverNickName(anotherUserName)
-                .message(chatMessage.getMessage())
-                .latelySenderDate(chatMessage.getSendTime())
-                .build());
+                .message(message.getMessage())
+                .latelySenderDate(message.getSendTime())
+                .build()));
         }
 
         chatList.sort((o1, o2) -> {
@@ -60,6 +57,10 @@ public class ChatRoomService {
 
     public ChatRoomDetailDto roomDetail(Long roomId, String userName) {
         Optional<ChatRoom> optionalChatRoom = chatRoomRepository.findById(roomId);
+        if(optionalChatRoom.isEmpty()) {
+            throw new RuntimeException("존재하지 않는 방입니다.");
+        }
+
         ChatRoom chatRoom = optionalChatRoom.get();
 
         List<ChatMessage> messages = chatRoom.getMessages();
@@ -86,18 +87,14 @@ public class ChatRoomService {
         ChatRoom chatRoom = new ChatRoom();
 
         createRoom(receiver, chatRoom);
-        chatRoomRepository.save(chatRoom);
-
         createRoom(sender, chatRoom);
-        chatRoomRepository.save(chatRoom);
     }
 
     private void createRoom(String userName, ChatRoom chatRoom) {
-        RegisterRoom registerRoom = RegisterRoom.of(userName, chatRoom);
+        RegisterRoom registerRoom = RegisterRoom.register(userName, chatRoom);
         registerRoomRepository.save(registerRoom);
     }
 
-    @Transactional
     public void deleteRoom(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
             .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));

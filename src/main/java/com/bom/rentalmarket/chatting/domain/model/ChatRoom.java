@@ -1,5 +1,6 @@
 package com.bom.rentalmarket.chatting.domain.model;
 
+import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
