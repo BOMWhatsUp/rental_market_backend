@@ -21,6 +21,8 @@ public class GetProductDetailForm {
 
   private Long id;
   private String sellerId;
+  private String sellerProfile;
+  private String sellerRegion;
   private String nickname;
   private String title;
   private String content;
@@ -33,7 +35,8 @@ public class GetProductDetailForm {
   private LocalDateTime modifiedAt;
   private LocalDateTime returnDate;
 
-  public static GetProductDetailForm from(ProductBoard productBoard, LocalDateTime returnDate) {
+  public static GetProductDetailForm from(ProductBoard productBoard, LocalDateTime returnDate,
+      String sellerRegion, String sellerProfile) {
     return GetProductDetailForm.builder()
         .id(productBoard.getId())
         .sellerId(productBoard.getSellerId())
@@ -48,6 +51,8 @@ public class GetProductDetailForm {
         .status(productBoard.getStatus())
         .modifiedAt(productBoard.getModifiedAt())
         .returnDate(returnDate)
+        .sellerProfile(sellerProfile)
+        .sellerRegion(sellerRegion)
         .build();
   }
 

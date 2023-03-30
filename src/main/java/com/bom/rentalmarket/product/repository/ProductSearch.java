@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ProductSearch {
   List<ProductBoard> searchFilters(CategoryType categoryName, StatusType status,
-      String keyword, long pageNo, long pageSize);
+      String keyword, int pageNo, int pageSize, String userRegion);
 }
