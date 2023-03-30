@@ -15,6 +15,6 @@ public class ChatListDto {
     private String receiverImageUrl;
     private LocalDateTime latelySenderDate;
     private String message;
-    // private Product item;
+    private Long productId;
 
 }

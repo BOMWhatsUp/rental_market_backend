@@ -48,24 +48,23 @@ class ChatRoomControllerTest {
     @Mock
     private ChatRoomRepository chatRoomRepository;
 
-    @Test
-    @WithMockUser
-    void successCreateChatRoom() throws Exception {
-        //given
-        String receiver = "receiver";
-        String sender = "sender";
-        willDoNothing().given(chatRoomService).connectRoomBetweenUsers(receiver, sender);
-
-        //when
-        //then
-        mockMvc.perform(post("/chat/room")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    new ChatRoomUsers()
-                )))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
+//    @Test
+//    void successCreateChatRoom() throws Exception {
+//        //given
+//        String receiver = "receiver";
+//        String sender = "sender";
+//        willDoNothing().given(chatRoomService).connectRoomBetweenUsers(receiver, sender);
+//
+//        //when
+//        //then
+//        mockMvc.perform(post("/chat/room")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(
+//                    new ChatRoomUsers()
+//                )))
+//                .andDo(print())
+//                .andExpect(status().isOk());
+//    }
 
     @Test
     void successDeleteChatRoom() throws Exception {

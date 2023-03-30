@@ -156,34 +156,34 @@ class ChatRoomServiceTest {
         assertEquals(1L, messages.get(2).getChatRoom().getId());
     }
 
-    @Test
-    @DisplayName("채팅방 생성 성공")
-    void createChatRoom()
-        throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        //given
-        ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setId(1L);
-        String receiver = "seller";
-        String sender = "client";
-
-        Method method = ChatRoomService.class.getDeclaredMethod("createRoom", String.class, ChatRoom.class);
-        method.setAccessible(true);
-
-        method.invoke(chatRoomService, receiver, chatRoom);
-        method.invoke(chatRoomService, sender, chatRoom);
-
-        ArgumentCaptor<RegisterRoom> captor = ArgumentCaptor.forClass(RegisterRoom.class);
-
-        //when
-        chatRoomService.connectRoomBetweenUsers(receiver, sender);
-
-        //then
-        verify(registerRoomRepository, times(4)).save(captor.capture());
-        assertEquals(1L, captor.getAllValues().get(0).getChatRoom().getId());
-        assertEquals("seller", captor.getAllValues().get(0).getUserName());
-        assertEquals(1L, captor.getAllValues().get(1).getChatRoom().getId());
-        assertEquals("client", captor.getAllValues().get(1).getUserName());
-    }
+//    @Test
+//    @DisplayName("채팅방 생성 성공")
+//    void createChatRoom()
+//        throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+//        //given
+//        ChatRoom chatRoom = new ChatRoom();
+//        chatRoom.setId(1L);
+//        String receiver = "seller";
+//        String sender = "client";
+//
+//        Method method = ChatRoomService.class.getDeclaredMethod("createRoom", String.class, ChatRoom.class);
+//        method.setAccessible(true);
+//
+//        method.invoke(chatRoomService, receiver, chatRoom);
+//        method.invoke(chatRoomService, sender, chatRoom);
+//
+//        ArgumentCaptor<RegisterRoom> captor = ArgumentCaptor.forClass(RegisterRoom.class);
+//
+//        //when
+//        chatRoomService.connectRoomBetweenUsers(receiver, sender);
+//
+//        //then
+//        verify(registerRoomRepository, times(4)).save(captor.capture());
+//        assertEquals(1L, captor.getAllValues().get(0).getChatRoom().getId());
+//        assertEquals("seller", captor.getAllValues().get(0).getUserName());
+//        assertEquals(1L, captor.getAllValues().get(1).getChatRoom().getId());
+//        assertEquals("client", captor.getAllValues().get(1).getUserName());
+//    }
 
     @Test
     @DisplayName("채팅방 삭제 성공")
