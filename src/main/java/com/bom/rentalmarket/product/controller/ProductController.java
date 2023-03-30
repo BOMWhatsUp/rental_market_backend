@@ -65,9 +65,12 @@ public class ProductController {
 
   @PostMapping("/transaction/")
   public ResponseEntity<CreateRentalHistoryForm> createRentalHistory(
-      @ModelAttribute CreateRentalHistoryForm createRentalHistoryForm) {
+      @RequestParam String userId,
+      @RequestParam Long productId,
+      @RequestParam Long totalPrice,
+      @RequestParam int days) {
     CreateRentalHistoryForm addHistory = productService.createRentalHistory(
-        createRentalHistoryForm);
+        userId, productId, totalPrice, days);
     return ResponseEntity.ok(addHistory);
   }
 

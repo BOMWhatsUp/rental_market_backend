@@ -34,6 +34,7 @@ public class ProductService {
   private final RentalHistoryRepository rentalHistoryRepository;
   private final MemberRepository memberRepository;
   private final S3Service s3Service;
+  private final ChatRoomService chatRoomService;
 
   public CreateProductForm createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
       int mainImageIndex)
@@ -151,7 +152,7 @@ public class ProductService {
     Optional<ProductBoard> optionalProductBoard = productRepository.findById(productId);
 
     if (optionalProductBoard.isEmpty()) {
-      throw new NoSuchElementException("Product with ID" + productId);
+      throw new NoSuchElementException("Product with PRODUCT_ID" + productId);
     }
 
     ProductBoard productBoard = optionalProductBoard.get();
@@ -159,9 +160,41 @@ public class ProductService {
     return GetTransactionForm.from(productBoard);
   }
 
-  public CreateRentalHistoryForm createRentalHistory(
-      CreateRentalHistoryForm createRentalHistoryForm) {
-    return null;
+  public CreateRentalHistoryForm createRentalHistory(String userId, Long productId, Long totalPrice,
+      int days) {
+    String sellerId;
+    Optional<ProductBoard> product = productRepository.findById(productId);
+    if (product.isPresent()) {
+      sellerId = product.get().getSellerId();
+    } else {
+      throw new RuntimeException("Product with id " + productId + " does not exist.");
+    }
+
+    // rentalHistory 생성
+    RentalHistory rentalHistory = RentalHistory.builder()
+        .productId(productId)
+        .userId(userId)
+        .sellerId(sellerId)
+        .totalPrice(totalPrice)
+        .rentalDate(LocalDateTime.now())
+        .returnDate(LocalDateTime.now().plusDays(days))
+        .returnYn(false)
+        .build();
+
+    RentalHistory saveRentalHistory = rentalHistoryRepository.save(rentalHistory);
+
+    // chatroom 생성
+    chatRoomService.connectRoomBetweenUsers(userId, sellerId);
+
+    ProductBoard productBoard = ProductBoard.builder()
+        .status(StatusType.RENTED).build();
+
+    productRepository.save(productBoard);
+
+    return CreateRentalHistoryForm.builder()
+        .totalPrice(saveRentalHistory.getTotalPrice())
+        .returnDate(saveRentalHistory.getReturnDate())
+        .build();
   }
 }
 
