@@ -2,19 +2,17 @@ package com.bom.rentalmarket.UserController.service.Impl;
 
 import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException;
 import com.bom.rentalmarket.UserController.domain.exception.ExistsNickNameException;
-import com.bom.rentalmarket.UserController.domain.exception.PasswordNotMatchException;
 import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
 import com.bom.rentalmarket.UserController.domain.model.MemberInput;
 import com.bom.rentalmarket.UserController.domain.model.MemberInputPassword;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.UserController.service.MemberService;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class MemberServiceImpl implements MemberService {
                 .email(memberInput.getEmail())
                 .nickName(memberInput.getNickName())
                 .password(encPassword)
-                .region(memberInput.getRegin())
+                .region(memberInput.getRegion())
                 .regDate(LocalDateTime.now())
                 .build();
     }
@@ -80,10 +78,10 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Member getUpdateMemberPassword(Long id, MemberInputPassword memberInputPassword) {
 
-        Member member = memberRepository.findByIdAndPassword(id, memberInputPassword.getPassword())
-                .orElseThrow(() -> new PasswordNotMatchException("비밀번호가 일치하지 않습니다."));
-
-        member.setPassword(memberInputPassword.getNewPassword());
+//        Member member = memberRepository.findByIdAndPassword(id, memberInputPassword.getPassword())
+//                .orElseThrow(() -> new PasswordNotMatchException("비밀번호가 일치하지 않습니다."));
+//
+//        member.setPassword(memberInputPassword.getNewPassword());
 
         return Member.builder().build();
     }
