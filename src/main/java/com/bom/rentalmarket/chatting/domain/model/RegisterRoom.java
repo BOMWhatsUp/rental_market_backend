@@ -28,7 +28,7 @@ public class RegisterRoom {
     @JoinColumn(name = "room_id")
     private ChatRoom chatRoom;
 
-    public static RegisterRoom of(String userName, ChatRoom chatRoom) {
+    public static RegisterRoom register(String userName, ChatRoom chatRoom) {
         return RegisterRoom.builder()
             .userName(userName)
             .chatRoom(chatRoom)
