@@ -1,5 +1,8 @@
 package com.bom.rentalmarket.product.service;
 
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
+import com.bom.rentalmarket.UserController.repository.MemberRepository;
+import com.bom.rentalmarket.chatting.service.ChatRoomService;
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.entity.RentalHistory;
 import com.bom.rentalmarket.product.model.CreateProductForm;
@@ -29,6 +32,7 @@ public class ProductService {
 
   private final ProductRepository productRepository;
   private final RentalHistoryRepository rentalHistoryRepository;
+  private final MemberRepository memberRepository;
   private final S3Service s3Service;
 
   public CreateProductForm createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
@@ -104,10 +108,10 @@ public class ProductService {
 
 
   public List<GetProductForm> getProducts(CategoryType categoryName, StatusType status,
-      String keyword, Long pageNo, Long pageSize) {
+      String keyword, int pageNo, int pageSize, String userRegion) {
 
     List<ProductBoard> productBoardList = productRepository.searchFilters(categoryName,
-        status, keyword, pageNo, pageSize);
+        status, keyword, pageNo, pageSize, userRegion);
 
     return productBoardList.stream().map(productBoard -> {
       LocalDateTime returnDate = null;
@@ -124,17 +128,22 @@ public class ProductService {
 
     Optional<ProductBoard> optionalProductBoard = productRepository.findById(productId);
     if (optionalProductBoard.isEmpty()) {
-      throw new NoSuchElementException("Product with ID" + productId);
+      throw new NoSuchElementException("Product with PRODUCT_ID" + productId);
     }
 
     ProductBoard productBoard = optionalProductBoard.get();
+    String email = productBoard.getSellerId();
 
     Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
         productBoard);
 
     LocalDateTime returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
 
-    return GetProductDetailForm.from(productBoard, returnDate);
+    Optional<Member> optionalMember = memberRepository.findByEmail(email);
+    String sellerRegion = optionalMember.map(Member::getRegion).orElse(null);
+    String sellerProfile = optionalMember.map(Member::getImageUrl).orElse(null);
+
+    return GetProductDetailForm.from(productBoard, returnDate, sellerRegion, sellerProfile);
   }
 
   public GetTransactionForm getProductTransaction(Long productId) {

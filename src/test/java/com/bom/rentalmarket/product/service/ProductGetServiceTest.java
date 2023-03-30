@@ -4,7 +4,6 @@ import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.bom.rentalmarket.product.model.GetProductForm;
-import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.MaxPeriodType;
 import com.bom.rentalmarket.product.type.StatusType;
@@ -19,9 +18,6 @@ import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 public class ProductGetServiceTest {
 
   @Autowired
-  private ProductRepository productRepository;
-
-  @Autowired
   private ProductService productService;
 
 
@@ -33,11 +29,12 @@ public class ProductGetServiceTest {
     CategoryType categoryType = CategoryType.CLOTHING;
     StatusType statusType = StatusType.AVAILABLE;
     String keyword = "title";
+    String userRegion = "서울시 용산구";
     int pageNo = 1;
     int pageSize = 10;
 
     List<GetProductForm> productList = productService.getProducts(categoryType, statusType, keyword,
-        (long)pageNo, (long)pageSize);
+        pageNo, pageSize, userRegion);
 
     // then
     assertNotNull(productList); // products map 객체가 null이 아닌지 확인
