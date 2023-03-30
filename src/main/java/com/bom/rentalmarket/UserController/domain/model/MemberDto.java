@@ -17,7 +17,7 @@ import javax.validation.constraints.NotBlank;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberLogin {
+public class MemberDto {
 
     // 로그인페이지 활용, 필요한 값
     @NotBlank(message = "이메일 항목은 필수 입력입니다.")
