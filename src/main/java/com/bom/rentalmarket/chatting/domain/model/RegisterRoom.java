@@ -25,7 +25,7 @@ public class RegisterRoom {
     private String userName;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
 
     public static RegisterRoom register(String userName, ChatRoom chatRoom) {

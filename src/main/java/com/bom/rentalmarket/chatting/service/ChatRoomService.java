@@ -8,6 +8,7 @@ import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
 import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
 import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import com.bom.rentalmarket.chatting.domain.repository.RegisterRoomRepository;
+import com.bom.rentalmarket.product.entity.ProductBoard;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,13 +25,13 @@ public class ChatRoomService {
     private final RegisterRoomRepository registerRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
 
-    public List<ChatListDto> findAllRoom(String userName) {
+    public List<ChatListDto> findAllRoom(String userId) {
         List<ChatListDto> chatList = new ArrayList<>();
-        List<RegisterRoom> registerRooms = registerRoomRepository.findAllByUserName(userName);
+        List<RegisterRoom> registerRooms = registerRoomRepository.findAllByUserName(userId);
 
         for (RegisterRoom room : registerRooms) {
             ChatRoom chatRoom = room.getChatRoom();
-            String anotherUserName = this.findAnotherUser(chatRoom.getId(), userName);
+            String anotherUserName = this.findAnotherUser(chatRoom.getId(), userId);
             Optional<ChatMessage> chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(
                 chatRoom.getId());
 
@@ -38,6 +39,7 @@ public class ChatRoomService {
                 .receiverNickName(anotherUserName)
                 .message(message.getMessage())
                 .latelySenderDate(message.getSendTime())
+                .productId(chatRoom.getProduct().getId())
                 .build()));
         }
 
@@ -77,10 +79,11 @@ public class ChatRoomService {
             .messages(messages)
             .senderName(userName)
             .receiverName(receiverUser)
+            .product(chatRoom.getProduct())
             .build();
     }
 
-    public Long connectRoomBetweenUsers(String receiver, String sender) {
+    public Long connectRoomBetweenUsers(String receiver, String sender, ProductBoard product) {
         Long chatRoomId = checkAlreadyRoom(receiver, sender);
         if(chatRoomId != 0L) {
             return chatRoomId;
@@ -88,6 +91,7 @@ public class ChatRoomService {
 
         ChatRoom chatRoom = new ChatRoom();
 
+        chatRoom.setProduct(product);
         createRoom(receiver, chatRoom);
         createRoom(sender, chatRoom);
 
