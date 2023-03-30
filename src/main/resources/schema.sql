@@ -28,7 +28,7 @@ create table RENTAL_HISTORY
     USER_ID     VARCHAR(255) not null,
     TOTAL_PRICE INTEGER      not null,
     RETURN_YN   BOOLEAN      not null,
-    RENTAL_DATE TIMESTAMPnot null,
+    RENTAL_DATE TIMESTAMP    not null,
     RETURN_DATE TIMESTAMP    not null
 );
 

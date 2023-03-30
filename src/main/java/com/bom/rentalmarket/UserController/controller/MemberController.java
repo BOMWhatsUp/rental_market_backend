@@ -65,9 +65,7 @@ public class MemberController {
     public ResponseEntity<?> signup(@RequestBody @Valid MemberInput memberInput, Errors errors) {
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
-            errors.getAllErrors().forEach((e) -> {
-                responseErrorList.add(ResponseError.of((FieldError) e));
-            });
+            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
 
@@ -103,9 +101,7 @@ public class MemberController {
 
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
-            errors.getAllErrors().forEach((e) -> {
-                responseErrorList.add(ResponseError.of((FieldError) e));
-            });
+            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
 
@@ -117,7 +113,7 @@ public class MemberController {
         }
 
         member.setNickName(memberUpdate.getNickName());
-        member.setRegion(memberUpdate.getRegin());
+        member.setRegion(memberUpdate.getRegion());
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);
@@ -172,9 +168,7 @@ public class MemberController {
         List<ResponseError> responseErrorList = new ArrayList<>();
 
         if (errors.hasErrors()) {
-            errors.getAllErrors().forEach((e) -> {
-                responseErrorList.add(ResponseError.of((FieldError) e));
-            });
+            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
 
