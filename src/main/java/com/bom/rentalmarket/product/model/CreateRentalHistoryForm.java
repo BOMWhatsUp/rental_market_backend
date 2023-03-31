@@ -1,7 +1,5 @@
 package com.bom.rentalmarket.product.model;
 
-import com.bom.rentalmarket.UserController.domain.model.entity.Member;
-import com.bom.rentalmarket.product.entity.ProductBoard;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,12 +15,14 @@ import lombok.Setter;
 public class CreateRentalHistoryForm {
 
   private Long id;
-  private ProductBoard productId;
-  private Member userId;
-  private Member sellerId;
+  private Long productId;
+  private String userId;
+  private String sellerId;
   private Long totalPrice;
   private LocalDateTime rentalDate;
   private LocalDateTime returnDate;
   private Boolean returnYn;
+  private String message;
+  private Long roomId;
 
 }

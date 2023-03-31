@@ -1,10 +1,10 @@
 package com.bom.rentalmarket.product.controller;
 
-import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.model.CreateProductForm;
 import com.bom.rentalmarket.product.model.CreateRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
+import com.bom.rentalmarket.product.model.GetRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetTransactionForm;
 import com.bom.rentalmarket.product.service.ProductService;
 import com.bom.rentalmarket.product.type.CategoryType;
@@ -19,17 +19,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
-@RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
 
   private final ProductService productService;
 
+  @PostMapping("/create")
+  public ResponseEntity<CreateProductForm> createProduct(
+      @ModelAttribute CreateProductForm createProductForm,
+      @RequestParam("imageFiles") List<MultipartFile> imageFiles,
+      @RequestParam("mainImageIndex") int mainImageIndex) throws IOException {
+
+    CreateProductForm addProduct = productService.createProduct(createProductForm, imageFiles,
+        mainImageIndex);
+    return ResponseEntity.ok(addProduct);
+  }
 
   @GetMapping
   public ResponseEntity<List<GetProductForm>> getProducts(
@@ -61,10 +69,11 @@ public class ProductController {
     return ResponseEntity.ok().body(product);
   }
 
-  @PostMapping("/transaction/")
+
+  @PostMapping("/{productId}/transaction")
   public ResponseEntity<CreateRentalHistoryForm> createRentalHistory(
+      @PathVariable Long productId,
       @RequestParam String userId,
-      @RequestParam ProductBoard productId,
       @RequestParam Long totalPrice,
       @RequestParam int days) {
     CreateRentalHistoryForm addHistory = productService.createRentalHistory(
@@ -72,14 +81,43 @@ public class ProductController {
     return ResponseEntity.ok(addHistory);
   }
 
-  @PostMapping("/create")
-  public ResponseEntity<CreateProductForm> createProduct(
-      @ModelAttribute CreateProductForm createProductForm,
-      @RequestParam("imageFiles") List<MultipartFile> imageFiles,
-      @RequestParam("mainImageIndex") int mainImageIndex) throws IOException {
+  @GetMapping("/users/{userId}/buyer/transaction")
+  public ResponseEntity<List<GetRentalHistoryForm>> getBuyerRentalHistory(
+      @PathVariable String userId,
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @RequestParam(required = false, defaultValue = "10") int size) {
 
-    CreateProductForm addProduct = productService.createProduct(createProductForm, imageFiles,
-        mainImageIndex);
-    return ResponseEntity.ok(addProduct);
+    List<GetRentalHistoryForm> productList = productService.getBuyerRentalHistory(userId,
+        page, size);
+
+    return ResponseEntity.ok().body(productList);
   }
+
+  @GetMapping("/users/{sellerId}/seller/transaction")
+  public ResponseEntity<List<GetRentalHistoryForm>> getSellerRentalHistory(
+      @PathVariable String sellerId,
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @RequestParam(required = false, defaultValue = "10") int size) {
+
+    List<GetRentalHistoryForm> productList = productService.getSellerRentalHistory(sellerId,
+        page, size);
+
+    return ResponseEntity.ok().body(productList);
+  }
+
+  @DeleteMapping("/history/{id}")
+  public ResponseEntity<String> deleteBuyerRentalHistory(
+      @PathVariable Long id) {
+    productService.deleteHistory(id);
+    return ResponseEntity.ok("요청하신 내역이 삭제되었습니다.");
+  }
+
+  //  @DeleteMapping("/delete")
+//  public ResponseEntity<String> deleteProduct(
+//      @RequestParam Long productId,
+//      @RequestParam String userId) {
+//    productService.deleteProduct(productId, userId);
+//    return ResponseEntity.ok("요청하신 게시물이 삭제되었습니다.");
+//  }
+
 }

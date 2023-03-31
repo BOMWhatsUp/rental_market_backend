@@ -1,5 +1,6 @@
 package com.bom.rentalmarket.product.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
@@ -9,6 +10,7 @@ import com.bom.rentalmarket.product.model.CreateProductForm;
 import com.bom.rentalmarket.product.model.CreateRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
+import com.bom.rentalmarket.product.model.GetRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetTransactionForm;
 import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
@@ -23,6 +25,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -121,7 +127,7 @@ public class ProductService {
     return productBoardList.stream().map(productBoard -> {
       LocalDateTime returnDate = null;
       if (productBoard.getStatus() == StatusType.RENTED) {
-        Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
+        Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndSellerIdIsNotNullAndReturnYnFalse(
             productBoard);
         returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
       }
@@ -139,7 +145,7 @@ public class ProductService {
     ProductBoard productBoard = optionalProductBoard.get();
     Member sellerId = productBoard.getSellerId();
 
-    Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
+    Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndSellerIdIsNotNullAndReturnYnFalse(
         productBoard);
 
     LocalDateTime returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
@@ -163,20 +169,34 @@ public class ProductService {
     return GetTransactionForm.from(productBoard);
   }
 
-  public CreateRentalHistoryForm createRentalHistory(String userId, ProductBoard productId,
+  public CreateRentalHistoryForm createRentalHistory(String userId, Long prId,
       Long totalPrice,
       int days) {
 
-    Member sellerId = productId.getSellerId();
+    Optional<ProductBoard> product = productRepository.findById(prId);
+
+    ProductBoard productBoard = product.get();
+    Member sellerId = productBoard.getSellerId();
 
     if (sellerId == null) {
-      throw new RuntimeException("Product with id " + productId.getId() + " 가 존재하지 않습니다.");
+      throw new RuntimeException("Product with id " + productBoard.getId() + " 가 존재하지 않습니다.");
     }
 
+    //Product Status 변경
+    productBoard.setRentStatus(StatusType.RENTED);
+    productRepository.save(productBoard);
+
     RentalHistory userRentalHistory = RentalHistory.builder()
-        .productId(productId)
+        .productId(productBoard)
+        .content(productBoard.getContent())
+        .title(productBoard.getTitle())
+        .status(productBoard.getStatus())
+        .mainImageUrl(productBoard.getMainImageUrl())
+        .categoryName(productBoard.getCategoryName())
         .userId(userId)
         .sellerId(null)
+        .sellerProfile(sellerId.getImageUrl())
+        .sellerNickName(sellerId.getNickName())
         .totalPrice(totalPrice)
         .rentalDate(LocalDateTime.now())
         .returnDate(LocalDateTime.now().plusDays(days))
@@ -184,9 +204,16 @@ public class ProductService {
         .build();
 
     RentalHistory sellerRentalHistory = RentalHistory.builder()
-        .productId(productId)
+        .productId(productBoard)
+        .content(productBoard.getContent())
+        .title(productBoard.getTitle())
+        .status(productBoard.getStatus())
+        .mainImageUrl(productBoard.getMainImageUrl())
+        .categoryName(productBoard.getCategoryName())
         .userId(null)
         .sellerId(sellerId.getEmail())
+        .sellerProfile(sellerId.getImageUrl())
+        .sellerNickName(sellerId.getNickName())
         .totalPrice(totalPrice)
         .rentalDate(LocalDateTime.now())
         .returnDate(LocalDateTime.now().plusDays(days))
@@ -196,21 +223,92 @@ public class ProductService {
     rentalHistoryRepository.save(sellerRentalHistory);
     RentalHistory saveUserRentalHistory = rentalHistoryRepository.save(userRentalHistory);
 
-    ProductBoard productBoard = ProductBoard.builder()
-        .status(StatusType.RENTED).build();
+    Long roomId = chatRoomService.connectRoomBetweenUsers(userId, sellerId.getEmail(),
+        productBoard);
 
-    //Product Status 변경
-    ProductBoard rentalProduct = ProductBoard.builder()
-        .id(productId.getId())
-        .status(StatusType.RENTED)
-        .build();
-
-    productRepository.save(rentalProduct);
+    String message = String.format(
+        "%s 님이 상품 렌탈을 요청하셨습니다.%n렌탈 요청 정보%n렌탈 희망 기간 : %s ~ %s%n합계 금액 : %d 입니다.",
+        userId, saveUserRentalHistory.getRentalDate().toLocalDate(),
+        saveUserRentalHistory.getReturnDate().toLocalDate(), totalPrice);
 
     return CreateRentalHistoryForm.builder()
         .totalPrice(saveUserRentalHistory.getTotalPrice())
         .returnDate(saveUserRentalHistory.getReturnDate())
+        .roomId(roomId)
+        .message(message)
         .build();
   }
+
+  // 기획 마지막 단계에서 적용 (상품 수정, 상품 제거 카드)
+//  public void deleteProduct(Long productId, String sellerId) {
+//
+//    Optional<ProductBoard> optionalProductBoard = productRepository.findByIdAndSellerId(productId,
+//        sellerId);
+//    if (optionalProductBoard.isPresent()) {
+//      ProductBoard productBoard = optionalProductBoard.get();
+//
+//      String mainImageUrl = productBoard.getMainImageUrl();
+//      List<String> imageUrls = productBoard.getImageUrls();
+//
+//      productRepository.delete(productBoard);
+//
+//      s3Service.deleteImageUrls(imageUrls, mainImageUrl);
+//    }
+//  }
+
+  public List<GetRentalHistoryForm> getRentalHistory(String userId, String role, int page,
+      int size) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("rentalDate").descending());
+
+    Page<RentalHistory> rentalHistoryPage;
+    if ("buyer".equals(role)) {
+      rentalHistoryPage = rentalHistoryRepository.findByUserId(userId, pageable);
+
+      if (page >= rentalHistoryPage.getTotalPages()) {
+        pageable = PageRequest.of(0, size, Sort.by("rentalDate").descending());
+        rentalHistoryPage = rentalHistoryRepository.findByUserId(userId, pageable);
+      }
+    } else if ("seller".equals(role)) {
+      rentalHistoryPage = rentalHistoryRepository.findBySellerId(userId, pageable);
+
+      if (page >= rentalHistoryPage.getTotalPages()) {
+        pageable = PageRequest.of(0, size, Sort.by("rentalDate").descending());
+        rentalHistoryPage = rentalHistoryRepository.findBySellerId(userId, pageable);
+      }
+    } else {
+      throw new IllegalArgumentException("Unknown role: " + role);
+    }
+
+    return rentalHistoryPage.getContent()
+        .stream()
+        .map(GetRentalHistoryForm::from)
+        .collect(Collectors.toList());
+  }
+
+  public List<GetRentalHistoryForm> getBuyerRentalHistory(String userId, int page, int size) {
+
+    String buyer = "buyer";
+
+    return getRentalHistory(userId, buyer, page, size);
+  }
+
+  public List<GetRentalHistoryForm> getSellerRentalHistory(String sellerId, int page, int size) {
+
+    String seller = "seller";
+
+    return getRentalHistory(sellerId, seller, page, size);
+  }
+
+  public void deleteHistory(Long id) {
+    Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findById(id);
+    if (optionalRentalHistory.isPresent()) {
+      rentalHistoryRepository.deleteById(id);
+    } else {
+      throw new NotFoundException("대여 기록을 찾을 수 없습니다.");
+    }
+  }
+
+
 }
 

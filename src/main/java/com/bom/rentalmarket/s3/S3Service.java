@@ -52,4 +52,17 @@ public class S3Service {
       throw new RuntimeException("Failed to delete file from S3", e);
     }
   }
+
+  // 추후에 Product 삭제 시
+//  public void deleteImageUrls(List<String> imageUrls, String mainImageUrl) {
+//    for (String imageUrl : imageUrls) {
+//      if (!imageUrl.equals(mainImageUrl)) {
+//        try {
+//          s3Config.amazonS3().deleteObject(bucket, imageUrl);
+//        } catch (AmazonS3Exception e) {
+//          throw new RuntimeException("Failed to delete file from S3", e);
+//        }
+//      }
+//    }
+//  }
 }
