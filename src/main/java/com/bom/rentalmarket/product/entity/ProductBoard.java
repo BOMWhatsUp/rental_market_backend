@@ -69,4 +69,8 @@ public class ProductBoard extends BaseEntity {
   private LocalDateTime createdAt;
 
   private LocalDateTime modifiedAt;
+
+  public void setRentStatus(StatusType status) {
+    this.status = status;
+  }
 }

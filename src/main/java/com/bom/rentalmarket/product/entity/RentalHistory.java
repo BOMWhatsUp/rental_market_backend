@@ -1,5 +1,7 @@
 package com.bom.rentalmarket.product.entity;
 
+import com.bom.rentalmarket.product.type.CategoryType;
+import com.bom.rentalmarket.product.type.StatusType;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,9 +30,23 @@ public class RentalHistory {
   @JoinColumn(name = "product_id")
   private ProductBoard productId;
 
+  private String content;
+
+  private String title;
+
+  private StatusType status;
+
+  private String mainImageUrl;
+
+  private CategoryType categoryName;
+
   private String userId;
 
   private String sellerId;
+
+  private String sellerProfile;
+
+  private String sellerNickName;
 
   private Long totalPrice;
 
