@@ -1,5 +1,6 @@
 package com.bom.rentalmarket.product.entity;
 
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.common.BaseEntity;
 import com.bom.rentalmarket.product.converter.StringListConverter;
 import com.bom.rentalmarket.product.type.CategoryType;
@@ -12,9 +13,12 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,8 +54,9 @@ public class ProductBoard extends BaseEntity {
 
   private Long unitPrice;
 
-  @Column(name = "seller_id")
-  private String sellerId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "seller_id", referencedColumnName = "email")
+  private Member sellerId;
 
   private String title;
 

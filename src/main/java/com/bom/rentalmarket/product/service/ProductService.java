@@ -32,14 +32,18 @@ public class ProductService {
 
   private final ProductRepository productRepository;
   private final RentalHistoryRepository rentalHistoryRepository;
-  private final MemberRepository memberRepository;
   private final S3Service s3Service;
   private final ChatRoomService chatRoomService;
+  private final MemberRepository memberRepository;
 
   public CreateProductForm createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
       int mainImageIndex)
       throws IOException {
 
+    Member optionalSeller = memberRepository.findByEmail(form.getSellerId())
+        .orElseThrow(() -> new IllegalArgumentException("잘못된 판매자 아이디 입니다."));
+
+    System.out.println(optionalSeller);
     // 이미지 파일의 확장자를 체크하여 유효한 파일만 걸러내고, S3에 업로드합니다.
     List<MultipartFile> validImageFiles = new ArrayList<>();
     List<String> imageUrls = new ArrayList<>();
@@ -65,7 +69,7 @@ public class ProductService {
         .wishRegion(form.getWishRegion())
         .categoryName(form.getCategoryName())
         .maxRentalPeriod(form.getMaxRentalPeriod())
-        .sellerId(form.getSellerId())
+        .sellerId(optionalSeller)
         .nickname(form.getNickname())
         .createdAt(LocalDateTime.now())
         .modifiedAt(LocalDateTime.now())
@@ -78,7 +82,7 @@ public class ProductService {
 
     // ProductBoard 객체를 저장하고 CreateProductForm 객체로 변환하여 리턴합니다.
     return CreateProductForm.builder()
-        .sellerId(savedProduct.getSellerId())
+        .sellerId(optionalSeller.getEmail())
         .nickname(savedProduct.getNickname())
         .title(savedProduct.getTitle())
         .content(savedProduct.getContent())
@@ -109,7 +113,7 @@ public class ProductService {
 
 
   public List<GetProductForm> getProducts(CategoryType categoryName, StatusType status,
-      String keyword, int pageNo, int pageSize, String userRegion) {
+      String keyword, Long pageNo, Long pageSize, String userRegion) {
 
     List<ProductBoard> productBoardList = productRepository.searchFilters(categoryName,
         status, keyword, pageNo, pageSize, userRegion);
@@ -133,16 +137,15 @@ public class ProductService {
     }
 
     ProductBoard productBoard = optionalProductBoard.get();
-    String email = productBoard.getSellerId();
+    Member sellerId = productBoard.getSellerId();
 
     Optional<RentalHistory> optionalRentalHistory = rentalHistoryRepository.findByProductIdAndReturnYnFalse(
         productBoard);
 
     LocalDateTime returnDate = optionalRentalHistory.map(RentalHistory::getReturnDate).orElse(null);
 
-    Optional<Member> optionalMember = memberRepository.findByEmail(email);
-    String sellerRegion = optionalMember.map(Member::getRegion).orElse(null);
-    String sellerProfile = optionalMember.map(Member::getImageUrl).orElse(null);
+    String sellerRegion = sellerId.getRegion();
+    String sellerProfile = sellerId.getImageUrl();
 
     return GetProductDetailForm.from(productBoard, returnDate, sellerRegion, sellerProfile);
   }

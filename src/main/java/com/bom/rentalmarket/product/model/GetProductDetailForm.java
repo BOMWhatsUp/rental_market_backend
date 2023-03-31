@@ -39,7 +39,7 @@ public class GetProductDetailForm {
       String sellerRegion, String sellerProfile) {
     return GetProductDetailForm.builder()
         .id(productBoard.getId())
-        .sellerId(productBoard.getSellerId())
+        .sellerId(productBoard.getSellerId().getEmail())
         .nickname(productBoard.getNickname())
         .title(productBoard.getTitle())
         .content(productBoard.getContent())
@@ -55,7 +55,5 @@ public class GetProductDetailForm {
         .sellerRegion(sellerRegion)
         .build();
   }
-
-
 }
 

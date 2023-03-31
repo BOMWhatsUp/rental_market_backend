@@ -34,7 +34,7 @@ public class ProductGetServiceTest {
     int pageSize = 10;
 
     List<GetProductForm> productList = productService.getProducts(categoryType, statusType, keyword,
-        pageNo, pageSize, userRegion);
+        (long) pageNo, (long) pageSize, userRegion);
 
     // then
     assertNotNull(productList); // products map 객체가 null이 아닌지 확인
