@@ -10,17 +10,18 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 
-// 이메일과 지역 수정
+// 이메일 수정
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Builder
-public class MemberUpdate {
+public class MemberNickNameUpdate {
 
     @NotBlank(message = "닉네임은 필수 항목 입니다.")
-    @Size(max = 20, message = "최대 20자를 넘길 수 없습니다.")
     private String nickName;
 
-    @NotBlank(message = "지역 입력은 필수 사항 입니다.")
-    private String region;
+    @NotBlank(message = "새 닉네임은 필수 항목 입니다.")
+    @Size(max = 20, message = "최대 20자를 넘길 수 없습니다.")
+    private String NewNickName;
+
 }

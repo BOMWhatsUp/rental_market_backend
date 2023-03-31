@@ -10,7 +10,7 @@ public class WebAppConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "OPTIONS", "PUT", "DELETE")
+                .allowedMethods("GET", "POST", "OPTIONS", "PUT", "PATCH","DELETE")
                 .maxAge(3600);
     }
 }
@@ -23,3 +23,5 @@ public class WebAppConfiguration implements WebMvcConfigurer {
 
 //
 // 마이페이지 -> 프로필 수정,
+
+//
