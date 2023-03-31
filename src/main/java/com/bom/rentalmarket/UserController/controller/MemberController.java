@@ -10,14 +10,12 @@ import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import com.bom.rentalmarket.s3.S3Service;
-import com.bom.rentalmarket.service.CustomUserDetailService;
 import com.bom.rentalmarket.service.LoginCheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -69,20 +67,7 @@ public class MemberController {
     // 회원가입, 중복체크 나누기
     @PostMapping("/signup")
     @Transactional
-    public ResponseEntity<?> signup(@RequestBody @Valid MemberInput memberInput, Errors errors) {
-        List<ResponseError> responseErrorList = new ArrayList<>();
-        if (errors.hasErrors()) {
-            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
-            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
-        }
-
-        if (memberRepository.countByEmail(memberInput.getEmail()) > 0 ) {
-            throw new ExistsEmailException("이미 존재한 email 입니다.");
-        }
-
-        if (memberRepository.countByNickName(memberInput.getNickName()) > 0) {
-            throw new ExistsNickNameException("이미 존재한 nickName 입니다.");
-        }
+    public ResponseEntity<?> signup(@RequestBody @Valid MemberInput memberInput) {
 
         Member member = Member.builder()
                 .email(memberInput.getEmail())
@@ -98,25 +83,17 @@ public class MemberController {
         return ResponseEntity.ok().body(memberInput);
     }
 
-    @PostMapping("/checkEmail")
-    @Transactional
-    public ResponseEntity<?> checkEmail(@RequestBody @Valid MemberInput memberInput, Errors errors) {
-        List<ResponseError> responseErrorList = new ArrayList<>();
-        if (errors.hasErrors()) {
-            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
-            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
-        }
+    // email 중복 검사
+   @GetMapping("/checkEmail/{email}")
+   public ResponseEntity<Boolean> checkByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(loginCheckService.checkEmail(email));
+   }
 
-        if (memberRepository.countByEmail(memberInput.getEmail()) > 0) {
-            throw new ExistsEmailException("이미 존재한 email 입니다.");
-        }
 
-        Member member = Member.builder()
-                .email(memberInput.getEmail())
-                .build();
-
-        memberRepository.save(member);
-        return ResponseEntity.ok().build();
+    // nickName 증복 검사
+    @GetMapping("/checkNickName/{nickName}")
+    public ResponseEntity<Boolean> checkByNickName(@PathVariable String nickName) {
+        return ResponseEntity.ok(loginCheckService.checkNickName(nickName));
     }
 
      /*
@@ -125,9 +102,9 @@ public class MemberController {
      닉네임은 중복 불가까지..
      */
 
-    @PutMapping("/users/modify/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id
-            , @RequestBody @Valid MemberUpdate memberUpdate
+    @PatchMapping("/updateNickName/{id}")
+    public ResponseEntity<?> updateNickName(@PathVariable Long id
+            , @RequestBody MemberNickNameUpdate memberNickNameUpdate
             , Errors errors) {
 
         List<ResponseError> responseErrorList = new ArrayList<>();
@@ -136,32 +113,43 @@ public class MemberController {
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
 
-        Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
+        Member member = memberRepository.findByIdAndNickName(id, memberNickNameUpdate.getNickName())
+                .orElseThrow(() -> new ExistsNickNameException("이미 존재한 닉네임 입니다."));
 
-        if (memberRepository.countByNickName(memberUpdate.getNickName()) > 0) {
-            throw new ExistsNickNameException("이미 존재한 닉네임 입니다.");
-        }
-
-        member.setNickName(memberUpdate.getNickName());
-        member.setRegion(memberUpdate.getRegion());
+        member.setNickName(memberNickNameUpdate.getNewNickName());
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/updateRegion/{id}")
+    public ResponseEntity<?> updateRegion(@PathVariable Long id
+            , @RequestBody  MemberRegionUpdate memberRegionUpdate
+            , Errors errors) {
+        List<ResponseError> responseErrorList = new ArrayList<>();
+        if (errors.hasErrors()) {
+            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
+            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
+        }
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
 
-    // 프로필 수정
+        member.setRegion(memberRegionUpdate.getNewRegion());
+        member.setUpdateDate(LocalDateTime.now());
+
+        memberRepository.save(member);
+        return ResponseEntity.ok().build();
+    }
+
+    // 마이페이지 프로필 수정
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile multipartFile) throws IOException {
         String fileName = s3Service.upload(multipartFile);
         return fileName;
     }
 
-
-
-    // 회원 비밀번호 수정
+    // 마이페이지 회원 비밀번호 수정
 //  MyPage 사용자 비밀번호 일치할때 비밀번호 수정 하는 API=======================================
 //    @PatchMapping("/user/{id}/reSetPassword/")
 //    public ResponseEntity<?> updateMemberPassword(@PathVariable Long id
@@ -225,56 +213,5 @@ public class MemberController {
         // 로그인에 성공하면 email, roles 로 토큰 생성 후 반환
         return  ResponseEntity.ok().body(token);
     }
-
-
-
-    // JWT 토큰을 재발행 하는 로직
-//    @PatchMapping("/users/refreshToken")
-//    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
-//        String token = request.getHeader("BOM-TOKEN");
-//        String email = "";
-//        try {
-//            email = JWT.require(Algorithm.HMAC512("BOM".getBytes()))
-//                    .build()
-//                    .verify(token)
-//                    .getIssuer();
-//        } catch (SignatureVerificationException e) {
-//            throw new PasswordNotMatchException("비밀번호가 일치하지 않습니다.");
-//        } catch (IllegalArgumentException e) {
-//            throw new RuntimeException("Token 값을 헤더에 보내주세요");
-//        }
-//
-//        Member member = memberRepository.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("사용자 정보가 없습니다."));
-//
-//        LocalDateTime localDateTime = LocalDateTime.now().plusMonths(1);
-//        Date expireDate = java.sql.Timestamp.valueOf(localDateTime);
-//
-//        String newToken = JWT.create()
-//                .withExpiresAt(expireDate)
-//                .withClaim("member_id", member.getId())
-//                .withSubject(member.getNickName())
-//                .withIssuer(member.getEmail())
-//                .sign(Algorithm.HMAC512("BOM".getBytes()));
-//
-//        return ResponseEntity.ok().body(MemberLoginToken.builder().token(newToken).build());
-//    }
-
-
-    // JWT 토큰을 삭제하는 로직
-//    @DeleteMapping("/user/login")
-//    public ResponseEntity<?> removeToken(@RequestHeader("F-TOKEN") String token) {
-//        String email = "";
-//
-//        try {
-//            email = JWTUtils.getIssuer(token);
-//        } catch (SignatureVerificationException e) {
-//            return new ResponseEntity<>("토큰정보가 일치하지 않습니다", HttpStatus.BAD_REQUEST);
-//        }
-//
-//        return ResponseEntity.ok().build();
-//    }
-
-    //
 
 }
