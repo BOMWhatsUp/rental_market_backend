@@ -39,7 +39,7 @@ public class ChatRoomService {
                 .receiverNickName(anotherUserName)
                 .message(message.getMessage())
                 .latelySenderDate(message.getSendTime())
-                .productId(chatRoom.getProduct().getId())
+                .product(chatRoom.getProduct())
                 .build()));
         }
 
