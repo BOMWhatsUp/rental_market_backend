@@ -1,6 +1,7 @@
 package com.bom.rentalmarket.jwt;
 
 
+import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -27,6 +28,7 @@ public class JwtTokenProvider {
     private long tokenValidTime = 30 * 60 * 1000L;     // 토큰 유효시간 30분
 
     private final UserDetailsService userDetailsService;
+    private final MemberRepository memberRepository;
 
     // 객체 초기화, secretKey를 Base64로 인코딩
     @PostConstruct
@@ -36,10 +38,18 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성
-    public String createToken(String userPk, List<String> roles) {  // userPK = email
-        Claims claims = Jwts.claims().setSubject(userPk); // JWT payload 에 저장되는 정보단위
-        claims.put("roles", roles); // 정보는 key / value 쌍으로 저장
+    public String createToken(String userPk, List<String> roles
+            ,String nickName, String region, String imageUrl) {// userPK = email
+
+        Claims claims = Jwts.claims().setSubject(userPk);// JWT payload 에 저장되는 정보단위
+
+        claims.put("roles", roles);// 정보는 key / value 쌍으로 저장
+        claims.put("nickName", nickName); // nickName 저장
+        claims.put("region", region);
+        claims.put("profileImg", imageUrl);
+
         Date now = new Date();
+
         return Jwts.builder()
                 .setClaims(claims) // 정보 저장
                 .setIssuedAt(now) // 토큰 발행 시간 정보
