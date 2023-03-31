@@ -163,40 +163,53 @@ public class ProductService {
     return GetTransactionForm.from(productBoard);
   }
 
-  public CreateRentalHistoryForm createRentalHistory(String userId, Long productId, Long totalPrice,
+  public CreateRentalHistoryForm createRentalHistory(String userId, ProductBoard productId,
+      Long totalPrice,
       int days) {
-    String sellerId;
-    Optional<ProductBoard> product = productRepository.findById(productId);
-    if (product.isPresent()) {
-      sellerId = product.get().getSellerId();
-    } else {
-      throw new RuntimeException("Product with id " + productId + " does not exist.");
+
+    Member sellerId = productId.getSellerId();
+
+    if (sellerId == null) {
+      throw new RuntimeException("Product with id " + productId.getId() + " 가 존재하지 않습니다.");
     }
 
-    // rentalHistory 생성
-    RentalHistory rentalHistory = RentalHistory.builder()
+    RentalHistory userRentalHistory = RentalHistory.builder()
         .productId(productId)
         .userId(userId)
-        .sellerId(sellerId)
+        .sellerId(null)
         .totalPrice(totalPrice)
         .rentalDate(LocalDateTime.now())
         .returnDate(LocalDateTime.now().plusDays(days))
         .returnYn(false)
         .build();
 
-    RentalHistory saveRentalHistory = rentalHistoryRepository.save(rentalHistory);
+    RentalHistory sellerRentalHistory = RentalHistory.builder()
+        .productId(productId)
+        .userId(null)
+        .sellerId(sellerId.getEmail())
+        .totalPrice(totalPrice)
+        .rentalDate(LocalDateTime.now())
+        .returnDate(LocalDateTime.now().plusDays(days))
+        .returnYn(false)
+        .build();
 
-    // chatroom 생성
-    chatRoomService.connectRoomBetweenUsers(userId, sellerId);
+    rentalHistoryRepository.save(sellerRentalHistory);
+    RentalHistory saveUserRentalHistory = rentalHistoryRepository.save(userRentalHistory);
 
     ProductBoard productBoard = ProductBoard.builder()
         .status(StatusType.RENTED).build();
 
-    productRepository.save(productBoard);
+    //Product Status 변경
+    ProductBoard rentalProduct = ProductBoard.builder()
+        .id(productId.getId())
+        .status(StatusType.RENTED)
+        .build();
+
+    productRepository.save(rentalProduct);
 
     return CreateRentalHistoryForm.builder()
-        .totalPrice(saveRentalHistory.getTotalPrice())
-        .returnDate(saveRentalHistory.getReturnDate())
+        .totalPrice(saveUserRentalHistory.getTotalPrice())
+        .returnDate(saveUserRentalHistory.getReturnDate())
         .build();
   }
 }
