@@ -5,24 +5,27 @@ import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException
 import com.bom.rentalmarket.UserController.domain.exception.ExistsNickNameException;
 import com.bom.rentalmarket.UserController.domain.exception.NotMatchPasswordException;
 import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
-import com.bom.rentalmarket.UserController.domain.model.MemberDto;
-import com.bom.rentalmarket.UserController.domain.model.MemberInput;
-import com.bom.rentalmarket.UserController.domain.model.MemberUpdate;
-import com.bom.rentalmarket.UserController.domain.model.ResponseError;
+import com.bom.rentalmarket.UserController.domain.model.*;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
+import com.bom.rentalmarket.s3.S3Service;
+import com.bom.rentalmarket.service.CustomUserDetailService;
+import com.bom.rentalmarket.service.LoginCheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +40,10 @@ public class MemberController {
     private final JwtTokenProvider jwtTokenProvider;
 
     private final MemberRepository memberRepository;
+
+    private final LoginCheckService loginCheckService;
+
+    private final S3Service s3Service;
 
     // email 중복  error Message 보내주는 로직
     @ExceptionHandler(ExistsEmailException.class)
@@ -59,7 +66,7 @@ public class MemberController {
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    // 회원가입
+    // 회원가입, 중복체크 나누기
     @PostMapping("/signup")
     @Transactional
     public ResponseEntity<?> signup(@RequestBody @Valid MemberInput memberInput, Errors errors) {
@@ -71,7 +78,9 @@ public class MemberController {
 
         if (memberRepository.countByEmail(memberInput.getEmail()) > 0 ) {
             throw new ExistsEmailException("이미 존재한 email 입니다.");
-        } else if (memberRepository.countByNickName(memberInput.getNickName()) > 0) {
+        }
+
+        if (memberRepository.countByNickName(memberInput.getNickName()) > 0) {
             throw new ExistsNickNameException("이미 존재한 nickName 입니다.");
         }
 
@@ -80,13 +89,35 @@ public class MemberController {
                 .nickName(memberInput.getNickName())
                 .password(passwordEncoder.encode(memberInput.getPassword()))//비밀번호 인코딩
                 .region(memberInput.getRegion())
-                .roles(Collections.singletonList("ROLE_USER"))         //roles는 최초 USER로 설정
+                .regDate(LocalDateTime.now())
+                .roles(Collections.singletonList("ROLE_USER"))
+                .imageUrl(memberInput.getImageUrl())//roles는 최초 USER로 설정
+                .build();
+
+        memberRepository.save(member);
+        return ResponseEntity.ok().body(memberInput);
+    }
+
+    @PostMapping("/checkEmail")
+    @Transactional
+    public ResponseEntity<?> checkEmail(@RequestBody @Valid MemberInput memberInput, Errors errors) {
+        List<ResponseError> responseErrorList = new ArrayList<>();
+        if (errors.hasErrors()) {
+            errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
+            return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
+        }
+
+        if (memberRepository.countByEmail(memberInput.getEmail()) > 0) {
+            throw new ExistsEmailException("이미 존재한 email 입니다.");
+        }
+
+        Member member = Member.builder()
+                .email(memberInput.getEmail())
                 .build();
 
         memberRepository.save(member);
         return ResponseEntity.ok().build();
     }
-
 
      /*
      회원 정보 수정 하는 로직
@@ -118,6 +149,14 @@ public class MemberController {
 
         memberRepository.save(member);
         return ResponseEntity.ok().build();
+    }
+
+
+    // 프로필 수정
+    @PostMapping("/upload")
+    public String upload(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+        String fileName = s3Service.upload(multipartFile);
+        return fileName;
     }
 
 
@@ -163,7 +202,8 @@ public class MemberController {
 
     // email, password 를 입력하여 -> JWT 토큰 발행 -> 30분 유효성있는 JWT Token 발행
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid MemberDto memberDto, Errors errors) {
+    public ResponseEntity<?> login(@RequestBody @Valid MemberDto memberDto
+            , Errors errors) {
 
         List<ResponseError> responseErrorList = new ArrayList<>();
 
@@ -179,9 +219,14 @@ public class MemberController {
             throw new NotMatchPasswordException("잘못된 비밀번호입니다.");
         }
 
+        String token  = jwtTokenProvider.createToken(member.getUsername(), member.getRoles()
+                , member.getNickName(), member.getRegion(), member.getImageUrl());
+
         // 로그인에 성공하면 email, roles 로 토큰 생성 후 반환
-        return ResponseEntity.ok().body(jwtTokenProvider.createToken(member.getUsername(), member.getRoles()));
+        return  ResponseEntity.ok().body(token);
     }
+
+
 
     // JWT 토큰을 재발행 하는 로직
 //    @PatchMapping("/users/refreshToken")

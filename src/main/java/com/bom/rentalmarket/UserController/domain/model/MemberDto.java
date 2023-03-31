@@ -27,3 +27,5 @@ public class MemberDto {
     private String password;
 
 }
+
+

@@ -45,16 +45,12 @@ public class Member implements UserDetails {
     private LocalDateTime updateDate; // 회원정보 수정 날짜
 
     @Column
-    private String title; // url title
-
-    @Column
     private String imageUrl; // url 경로
 
     @Override
     public String toString() {
         return "FileEntity{" +
                 "id=" + id +
-                ", title='" + title + '\'' +
                 ", s3Url='" + imageUrl + '\'' +
                 '}';
     }
