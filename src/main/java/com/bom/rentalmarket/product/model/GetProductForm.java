@@ -36,7 +36,7 @@ public class GetProductForm {
   public static GetProductForm from(ProductBoard productBoard, LocalDateTime returnDate) {
     return GetProductForm.builder()
         .id(productBoard.getId())
-        .sellerId(productBoard.getSellerId())
+        .sellerId(productBoard.getSellerId().getEmail())
         .nickname(productBoard.getNickname())
         .title(productBoard.getTitle())
         .content(productBoard.getContent())

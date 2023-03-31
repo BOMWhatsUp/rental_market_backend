@@ -29,7 +29,7 @@ public class GetTransactionForm {
   public static GetTransactionForm from(ProductBoard productBoard) {
     return GetTransactionForm.builder()
         .id(productBoard.getId())
-        .sellerId(productBoard.getSellerId())
+        .sellerId(productBoard.getSellerId().getEmail())
         .nickname(productBoard.getNickname())
         .title(productBoard.getTitle())
         .imageUrls(productBoard.getImageUrls())

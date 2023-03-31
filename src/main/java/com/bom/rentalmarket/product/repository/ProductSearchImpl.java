@@ -19,7 +19,7 @@ public class ProductSearchImpl implements ProductSearch{
   }
 
   public List<ProductBoard> searchFilters(CategoryType categoryName, StatusType status,
-      String keyword, int pageNo, int pageSize, String userRegion) {
+      String keyword, Long pageNo, Long pageSize, String userRegion) {
 
     QProductBoard productBoard = QProductBoard.productBoard;
 
@@ -42,12 +42,10 @@ public class ProductSearchImpl implements ProductSearch{
           .or(productBoard.content.containsIgnoreCase(keyword)));
     }
 
-    int offset = (pageNo - 1) * pageSize;
-
     return jpaQueryFactory.selectFrom(productBoard)
         .where(builder)
         .orderBy(productBoard.createdAt.desc())
-        .offset(offset)
+        .offset((pageNo - 1) * pageSize) // 결과가 int의 범위를 벗어날수도 있기 때문
         .limit(pageSize)
         .fetch();
   }

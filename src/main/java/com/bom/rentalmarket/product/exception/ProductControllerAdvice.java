@@ -10,27 +10,27 @@ public class ProductControllerAdvice {
 
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException e) {
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, "해당 상품을 찾을 수 없습니다.");
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
   }
 
   @ExceptionHandler(CreateProductException.class)
   public ResponseEntity<ErrorResponse> handleCreateProductException(CreateProductException e) {
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "상품 등록 중 오류가 발생하였습니다.");
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
   }
 
   @ExceptionHandler(CreateRentalHistoryException.class)
   public ResponseEntity<ErrorResponse> handleCreateRentalHistoryException(
       CreateRentalHistoryException e) {
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "대여 내역 생성 중 오류가 발생하였습니다.");
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleException(Exception e) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage()));
+        .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생하였습니다."));
   }
 
 
