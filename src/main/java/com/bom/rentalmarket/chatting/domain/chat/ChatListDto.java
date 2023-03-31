@@ -1,5 +1,6 @@
 package com.bom.rentalmarket.chatting.domain.chat;
 
+import com.bom.rentalmarket.product.entity.ProductBoard;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +16,6 @@ public class ChatListDto {
     private String receiverImageUrl;
     private LocalDateTime latelySenderDate;
     private String message;
-    private Long productId;
+    private ProductBoard product;
 
 }
