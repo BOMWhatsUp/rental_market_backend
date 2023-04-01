@@ -22,15 +22,15 @@ public class RegisterRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userName;
+    private String nickname;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    public static RegisterRoom register(String userName, ChatRoom chatRoom) {
+    public static RegisterRoom register(String nickname, ChatRoom chatRoom) {
         return RegisterRoom.builder()
-            .userName(userName)
+            .nickname(nickname)
             .chatRoom(chatRoom)
             .build();
     }

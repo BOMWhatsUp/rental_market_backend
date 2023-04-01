@@ -4,8 +4,8 @@ import com.bom.rentalmarket.product.entity.ProductBoard;
 import lombok.Getter;
 
 @Getter
-public class ChatRoomUsers {
-    private String receiverId;
-    private String senderId;
+public class CreateRoomForm {
+    private String receiverNickname;
+    private String senderNickname;
     private ProductBoard product;
 }

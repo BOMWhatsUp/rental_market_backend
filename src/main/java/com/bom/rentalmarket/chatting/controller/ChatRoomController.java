@@ -2,7 +2,7 @@ package com.bom.rentalmarket.chatting.controller;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
-import com.bom.rentalmarket.chatting.domain.chat.ChatRoomUsers;
+import com.bom.rentalmarket.chatting.domain.chat.CreateRoomForm;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,23 +26,23 @@ public class ChatRoomController {
     @GetMapping("/room")
     public ResponseEntity<ChatRoomDetailDto> getRoomDetail(
         @RequestParam(value = "roomId") String roomId,
-        @RequestParam(value = "senderId") String senderId) {
-        ChatRoomDetailDto chatRoomDetail = chatRoomService.roomDetail(Long.parseLong(roomId), senderId);
+        @RequestParam(value = "nickname") String senderNickname) {
+        ChatRoomDetailDto chatRoomDetail = chatRoomService.roomDetail(Long.parseLong(roomId), senderNickname);
 
         return ResponseEntity.ok(chatRoomDetail);
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<ChatListDto>> getAllChatRoom(@RequestParam(value = "userId") String userId) {
-        List<ChatListDto> chatList= chatRoomService.findAllRoom(userId);
+    public ResponseEntity<List<ChatListDto>> getAllChatRoom(@RequestParam(value = "nickname") String nickname) {
+        List<ChatListDto> chatList= chatRoomService.findAllRoom(nickname);
 
         return ResponseEntity.ok(chatList);
     }
 
     @PostMapping("/room")
-    public ResponseEntity<String> createRoom(@RequestBody ChatRoomUsers user) {
+    public ResponseEntity<String> createRoom(@RequestBody CreateRoomForm user) {
         String roomId = String.valueOf(chatRoomService.connectRoomBetweenUsers(
-            user.getReceiverId(), user.getSenderId(), user.getProduct()));
+            user.getReceiverNickname(), user.getSenderNickname(), user.getProduct()));
 
         return ResponseEntity.ok(roomId);
     }

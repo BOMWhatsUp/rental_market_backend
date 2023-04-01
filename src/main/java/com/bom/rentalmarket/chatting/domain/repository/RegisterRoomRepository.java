@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegisterRoomRepository extends JpaRepository<RegisterRoom, Long> {
     List<RegisterRoom> findByChatRoom_Id(Long id);
-    List<RegisterRoom> findAllByUserName(String userName);
+    List<RegisterRoom> findAllByNickname(String userName);
 }
