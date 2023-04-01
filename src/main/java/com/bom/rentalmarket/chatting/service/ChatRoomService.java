@@ -1,5 +1,8 @@
 package com.bom.rentalmarket.chatting.service;
 
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.NONE_EXISTENT_MEMBER;
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.NOT_FOUND_CHATROOM;
+
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
@@ -9,6 +12,7 @@ import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
 import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
 import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import com.bom.rentalmarket.chatting.domain.repository.RegisterRoomRepository;
+import com.bom.rentalmarket.chatting.exception.ChatCustomException;
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,6 +29,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final RegisterRoomRepository registerRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final MemberRepository memberRepository;
 
     public List<ChatListDto> findAllRoom(String nickname) {
         List<ChatListDto> chatList = new ArrayList<>();
@@ -58,7 +63,7 @@ public class ChatRoomService {
     public ChatRoomDetailDto roomDetail(Long roomId, String senderNickname) {
         Optional<ChatRoom> optionalChatRoom = chatRoomRepository.findById(roomId);
         if(optionalChatRoom.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 방입니다.");
+            throw new ChatCustomException(NOT_FOUND_CHATROOM);
         }
 
         ChatRoom chatRoom = optionalChatRoom.get();
@@ -89,6 +94,10 @@ public class ChatRoomService {
         if(chatRoomId != 0L) {
             return chatRoomId;
         }
+        boolean checkUser = checkUsers(receiver, sender);
+        if(!checkUser) {
+            throw new ChatCustomException(NONE_EXISTENT_MEMBER);
+        }
 
         ChatRoom chatRoom = new ChatRoom();
 
@@ -106,11 +115,11 @@ public class ChatRoomService {
 
     public void deleteRoom(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-            .orElseThrow(() -> new RuntimeException("이미 삭제된 방입니다."));
+            .orElseThrow(() -> new ChatCustomException(NOT_FOUND_CHATROOM));
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
             chatRoom.getId());
         if (registerRooms.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 방입니다.");
+            throw new ChatCustomException(NOT_FOUND_CHATROOM);
         }
 
         registerRoomRepository.deleteAll(registerRooms);
@@ -142,5 +151,13 @@ public class ChatRoomService {
         }
 
         return 0L;
+    }
+
+    private boolean checkUsers(String receiver, String sender) {
+        if(memberRepository.countByNickName(receiver) <= 0 || memberRepository.countByNickName(sender) <= 0) {
+            return false;
+        }
+
+        return true;
     }
 }

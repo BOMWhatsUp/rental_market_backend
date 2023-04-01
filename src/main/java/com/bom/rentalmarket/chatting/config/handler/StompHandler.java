@@ -1,7 +1,11 @@
 package com.bom.rentalmarket.chatting.config.handler;
 
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.REQUIRED_JOIN_MEMBER;
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.REQUIRED_LOGIN;
+
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
+import com.bom.rentalmarket.chatting.exception.ChatCustomException;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -24,18 +28,19 @@ public class StompHandler implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        System.out.println(accessor);
         if (StompCommand.CONNECT.equals(accessor.getCommand())) { // websocket 연결요청
             System.out.println("웹소켓 연결 요청");
             String jwtToken = accessor.getFirstNativeHeader("X-AUTH-TOKEN");
             if(!jwtTokenProvider.validateToken(jwtToken)) {
-                throw new RuntimeException("로그인이 필요합니다.");
+                throw new ChatCustomException(REQUIRED_LOGIN);
             }
             String userId = jwtTokenProvider.getUserPk(jwtToken);
             if (userId != null) {
                 log.debug("userId: {}", userId);
                 Optional<Member> user = memberRepository.findByEmail(userId);
                 if (user.isEmpty()) {
-                    throw new RuntimeException("로그인이 필요합니다.");
+                    throw new ChatCustomException(REQUIRED_JOIN_MEMBER);
                 }
             }
             System.out.println("완료");
