@@ -19,7 +19,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByNickName(String nickName);
 
-
-    // 마이페이지 닉네임 수정 중복 불가
-    Optional<Member> findByIdAndNickName(Long id, String nickName);
+    Optional<Member> findByIdAndNickName(long id, String nickName);
 }
