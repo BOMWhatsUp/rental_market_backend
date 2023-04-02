@@ -8,6 +8,7 @@ on:
 
 env:
   RESOURCE_PATH: ./src/main/resources/application.yml
+  AWS_REGION: ap-northeast-2
   cloud.aws.s3.bucket: rentalbuckettest1
   cloud.aws.region.stack.auto: false
   spring.datasource.url: com.mysql.cj.jdbc.Driver
@@ -33,7 +34,7 @@ jobs:
       env:
         cloud.aws.credentials.access-key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         cloud.aws.credentials.secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        cloud.aws.region.static: ${{ secrets.AWS_REGION }}
+        cloud.aws.region.static: ${{ env.AWS_REGION }}
 
         
     - name: Grant execute permission for gradlew
