@@ -28,9 +28,9 @@ jobs:
     - name: Configure AWS credentials		#aws credentials 생성
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}	#secrets 변수 사용
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
-        aws-region: ${{ secrets.AWS_REGION }}
+        cloud.aws.credentials.access-key: ${{ secrets.AWS_ACCESS_KEY }}	#secrets 변수 사용
+        cloud.aws.credentials.secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+        cloud.aws.region.static: ${{ secrets.AWS_REGION }}
         
       # s3 업로드
     - name: upload build directory to s3
