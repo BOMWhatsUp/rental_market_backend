@@ -27,7 +27,6 @@ jobs:
         distribution: 'temurin'
         
     - name: Generate Environment Variables File for Properties
-      uses: microsoft/variable-substitution@v1
       with:
         files: ${{ env.RESOURCE_PATH }}
       env:
