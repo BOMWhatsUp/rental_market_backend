@@ -10,7 +10,6 @@ env:
   RESOURCE_PATH: ./src/main/resources/application.yml
   cloud.aws.s3.bucket: rentalbuckettest1
   cloud.aws.region.stack.auto: false
-  spring.datasource.url: com.mysql.cj.jdbc.Driver
 
 jobs:
   build:
@@ -32,6 +31,11 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}	#secrets 변수 사용
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
         aws-region: ${{ secrets.AWS_REGION }}
+        
+      # s3 업로드
+    - name: upload build directory to s3
+      run: aws s3 cp dist/ s3://your_bucket --recursive  #s3 bucket에 업로드
+
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
