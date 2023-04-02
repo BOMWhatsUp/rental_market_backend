@@ -17,8 +17,10 @@ import javax.validation.constraints.Size;
 @Builder
 public class MemberNickNameUpdate {
 
-    @NotBlank(message = "닉네임은 필수 항목 입니다.")
-    private String nickName;
+
+    @NotBlank(message = "닉네임 입력은 필수 항목 입니다.")
+    @Size(max = 20, message = "최대 20자를 넘길 수 없습니다.")
+    private String NickName;
 
     @NotBlank(message = "새 닉네임은 필수 항목 입니다.")
     @Size(max = 20, message = "최대 20자를 넘길 수 없습니다.")

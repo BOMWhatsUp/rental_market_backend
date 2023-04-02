@@ -84,14 +84,14 @@ public class MemberController {
     }
 
     // email 중복 검사
-   @GetMapping("/checkEmail/{email}")
-   public ResponseEntity<Boolean> checkByEmail(@PathVariable String email) {
+    @GetMapping("/check/email/{email}")
+    public ResponseEntity<Boolean> checkByEmail(@PathVariable String email) {
         return ResponseEntity.ok(loginCheckService.checkEmail(email));
-   }
+    }
 
 
     // nickName 증복 검사
-    @GetMapping("/checkNickName/{nickName}")
+    @GetMapping("/check/nickName/{nickName}")
     public ResponseEntity<Boolean> checkByNickName(@PathVariable String nickName) {
         return ResponseEntity.ok(loginCheckService.checkNickName(nickName));
     }
@@ -102,7 +102,11 @@ public class MemberController {
      닉네임은 중복 불가까지..
      */
 
-    @PatchMapping("/updateNickName/{id}")
+    /*
+    Patch id,
+     */
+
+    @PatchMapping("/update/NickName/{id}")
     public ResponseEntity<?> updateNickName(@PathVariable Long id
             , @RequestBody MemberNickNameUpdate memberNickNameUpdate
             , Errors errors) {
@@ -114,18 +118,18 @@ public class MemberController {
         }
 
         Member member = memberRepository.findByIdAndNickName(id, memberNickNameUpdate.getNickName())
-                .orElseThrow(() -> new ExistsNickNameException("이미 존재한 닉네임 입니다."));
+                .orElseThrow(() -> new ExistsNickNameException("닉네임이 일치하지 않습니다"));
 
         member.setNickName(memberNickNameUpdate.getNewNickName());
         member.setUpdateDate(LocalDateTime.now());
-
         memberRepository.save(member);
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok().body(memberNickNameUpdate);
     }
 
-    @PatchMapping("/updateRegion/{id}")
+    @PatchMapping("/update/Region/{id}")
     public ResponseEntity<?> updateRegion(@PathVariable Long id
-            , @RequestBody  MemberRegionUpdate memberRegionUpdate
+            , @RequestBody MemberRegionUpdate memberRegionUpdate
             , Errors errors) {
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
@@ -207,11 +211,11 @@ public class MemberController {
             throw new NotMatchPasswordException("잘못된 비밀번호입니다.");
         }
 
-        String token  = jwtTokenProvider.createToken(member.getUsername(), member.getRoles()
+        String token = jwtTokenProvider.createToken(member.getUsername(), member.getRoles()
                 , member.getNickName(), member.getRegion(), member.getImageUrl());
 
         // 로그인에 성공하면 email, roles 로 토큰 생성 후 반환
-        return  ResponseEntity.ok().body(token);
+        return ResponseEntity.ok().body(token);
     }
 
 }
