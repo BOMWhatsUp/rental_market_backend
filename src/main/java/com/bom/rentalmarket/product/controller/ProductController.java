@@ -19,16 +19,28 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
+@RestController
 @RequiredArgsConstructor
 public class ProductController {
 
   private final ProductService productService;
 
-  @PostMapping("/create")
+  @RestController
+  public class HealthController {
+    @GetMapping(value = "/")
+    public ResponseEntity<String> healthCheck() {
+      return ResponseEntity.ok().build();
+    }
+  }
+
+  @PostMapping("/product")
   public ResponseEntity<CreateProductForm> createProduct(
       @ModelAttribute CreateProductForm createProductForm,
       @RequestParam("imageFiles") List<MultipartFile> imageFiles,
@@ -39,7 +51,7 @@ public class ProductController {
     return ResponseEntity.ok(addProduct);
   }
 
-  @GetMapping
+  @GetMapping("/products")
   public ResponseEntity<List<GetProductForm>> getProducts(
       @RequestParam(required = false) String userRegion,
       @RequestParam(value = "category-name", required = false) CategoryType categoryName,
@@ -55,33 +67,31 @@ public class ProductController {
 
   }
 
-  @GetMapping("/{productId}/detail")
+  @GetMapping("/product/{id}")
   public ResponseEntity<GetProductDetailForm> getProductDetail(
-      @PathVariable Long productId) {
-    GetProductDetailForm product = productService.getProductDetail(productId);
+      @PathVariable Long id) {
+    GetProductDetailForm product = productService.getProductDetail(id);
     return ResponseEntity.ok().body(product);
   }
 
-  @GetMapping("/{productId}/transaction")
+  @GetMapping("/payment/product/{id}")
   public ResponseEntity<GetTransactionForm> getProductTransaction(
-      @PathVariable Long productId) {
-    GetTransactionForm product = productService.getProductTransaction(productId);
+      @PathVariable Long id) {
+    GetTransactionForm product = productService.getProductTransaction(id);
     return ResponseEntity.ok().body(product);
   }
 
 
-  @PostMapping("/{productId}/transaction")
+  @PostMapping("/payment/product/{id}")
   public ResponseEntity<CreateRentalHistoryForm> createRentalHistory(
-      @PathVariable Long productId,
-      @RequestParam String userId,
-      @RequestParam Long totalPrice,
-      @RequestParam int days) {
-    CreateRentalHistoryForm addHistory = productService.createRentalHistory(
-        userId, productId, totalPrice, days);
+      @PathVariable Long id,
+      @RequestBody CreateRentalHistoryForm createRentalHistoryForm) {
+
+    CreateRentalHistoryForm addHistory = productService.createRentalHistory(id, createRentalHistoryForm);
     return ResponseEntity.ok(addHistory);
   }
 
-  @GetMapping("/users/{userId}/buyer/transaction")
+  @GetMapping("/history/{userId}/buyer")
   public ResponseEntity<List<GetRentalHistoryForm>> getBuyerRentalHistory(
       @PathVariable String userId,
       @RequestParam(required = false, defaultValue = "1") int page,
@@ -93,7 +103,7 @@ public class ProductController {
     return ResponseEntity.ok().body(productList);
   }
 
-  @GetMapping("/users/{sellerId}/seller/transaction")
+  @GetMapping("/history/{sellerId}/seller")
   public ResponseEntity<List<GetRentalHistoryForm>> getSellerRentalHistory(
       @PathVariable String sellerId,
       @RequestParam(required = false, defaultValue = "1") int page,
@@ -110,6 +120,13 @@ public class ProductController {
       @PathVariable Long id) {
     productService.deleteHistory(id);
     return ResponseEntity.ok("요청하신 내역이 삭제되었습니다.");
+  }
+
+  @PutMapping("/rental/{id}")
+  public ResponseEntity<String> returnComplete(
+      @PathVariable Long id) {
+    productService.rentalReturnComplete(id);
+    return ResponseEntity.ok("요청하신 반납처리가 완료되었습니다.");
   }
 
   //  @DeleteMapping("/delete")

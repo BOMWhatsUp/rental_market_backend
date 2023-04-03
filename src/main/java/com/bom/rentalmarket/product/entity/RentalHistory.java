@@ -56,4 +56,9 @@ public class RentalHistory {
 
   private Boolean returnYn;
 
+  public void setStatusAndReturnYn(StatusType status, Boolean returnYn) {
+    this.status = status;
+    this.returnYn = returnYn;
+  }
+
 }

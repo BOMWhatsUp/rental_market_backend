@@ -169,9 +169,11 @@ public class ProductService {
     return GetTransactionForm.from(productBoard);
   }
 
-  public CreateRentalHistoryForm createRentalHistory(String userId, Long prId,
-      Long totalPrice,
-      int days) {
+  public CreateRentalHistoryForm createRentalHistory(Long prId, CreateRentalHistoryForm form) {
+
+    String userId = form.getUserId();
+    Long totalPrice = form.getTotalPrice();
+    int days = form.getDays();
 
     Optional<ProductBoard> product = productRepository.findById(prId);
 
@@ -310,5 +312,18 @@ public class ProductService {
   }
 
 
+  public void rentalReturnComplete(Long id) {
+
+    RentalHistory rentalHistory = rentalHistoryRepository.findById(id)
+        .orElseThrow(() -> new NotFoundException("대여 기록을 찾을 수 없습니다."));
+
+    rentalHistory.setStatusAndReturnYn(StatusType.RETURNED, true);
+
+    ProductBoard productBoard = rentalHistory.getProductId();
+    productBoard.setRentStatus(StatusType.AVAILABLE);
+
+    rentalHistoryRepository.save(rentalHistory);
+
+  }
 }
 

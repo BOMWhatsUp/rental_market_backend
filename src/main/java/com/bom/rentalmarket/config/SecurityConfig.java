@@ -39,7 +39,7 @@ public class SecurityConfig {
 
                 //URL 관리
                 .authorizeRequests()
-                .antMatchers("/signup", "/login", "/h2-console/**").permitAll()
+                .antMatchers("/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
 

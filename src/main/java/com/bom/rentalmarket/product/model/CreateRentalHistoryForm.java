@@ -24,5 +24,6 @@ public class CreateRentalHistoryForm {
   private Boolean returnYn;
   private String message;
   private Long roomId;
+  private int days;
 
 }
