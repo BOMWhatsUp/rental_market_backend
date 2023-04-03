@@ -23,12 +23,13 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
+    private final UserDetailsService userDetailsService;
+    private final MemberRepository memberRepository;
+
     private String secretKey = "BOM";
 
     private long tokenValidTime = 30 * 60 * 1000L;     // 토큰 유효시간 30분
 
-    private final UserDetailsService userDetailsService;
-    private final MemberRepository memberRepository;
 
     // 객체 초기화, secretKey를 Base64로 인코딩
     @PostConstruct
@@ -80,6 +81,6 @@ public class JwtTokenProvider {
     }
     // Request의 Header에서 token 값 가져오기
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader("X-AUTH-TOKEN");
+        return request.getHeader("Authorization");
     }
 }

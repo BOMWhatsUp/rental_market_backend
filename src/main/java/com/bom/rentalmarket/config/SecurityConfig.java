@@ -18,36 +18,41 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtTokenProvider jwtTokenProvider;
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
 
+  private final JwtTokenProvider jwtTokenProvider;
 
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+  }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                //h2 콘솔 사용
-                .csrf().disable().headers().frameOptions().disable()
-                .and()
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        //cors 설정
+        .cors().and()
 
-                //세션 사용 안함
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        //h2 콘솔 사용
+        .csrf().disable().headers().frameOptions().disable()
+        .and()
 
-                //URL 관리
-                .authorizeRequests()
-                .antMatchers("/**", "/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
+        //세션 사용 안함
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
 
-                // JwtAuthenticationFilter를 먼저 적용
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        //URL 관리
+        .authorizeRequests()
+        .antMatchers("/", "/login", "/signup", "/check/**").permitAll()
+        .anyRequest().authenticated()
+        .and()
 
-        return http.build();
-    }
+        // JwtAuthenticationFilter를 먼저 적용
+        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+            UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
+  }
+
 }
 
 
