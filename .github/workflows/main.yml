@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  S3_BUCKET_NAME: rentalbuckettest1
+  S3_BUCKET_NAME: rental-deploy
   
 jobs:
   build:
