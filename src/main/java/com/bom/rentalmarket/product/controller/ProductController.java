@@ -11,7 +11,9 @@ import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
 import java.io.IOException;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,12 +34,9 @@ public class ProductController {
 
   private final ProductService productService;
 
-  @RestController
-  public class HealthController {
-    @GetMapping(value = "/")
-    public ResponseEntity<String> healthCheck() {
-      return ResponseEntity.ok().build();
-    }
+  @GetMapping("/")
+  public void healthCheck(HttpServletResponse response) {
+    response.setStatus(HttpStatus.OK.value());
   }
 
   @PostMapping("/product")
