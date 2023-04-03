@@ -8,6 +8,7 @@ on:
 
 env:
   S3_BUCKET_NAME: rental-deploy
+  AWS_EC2_METADATA_DISABLED: true
   
 jobs:
   build:
