@@ -12,6 +12,7 @@ import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
 import com.bom.rentalmarket.product.model.GetRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetTransactionForm;
+import com.bom.rentalmarket.product.model.RentalHistoryDetail;
 import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
 import com.bom.rentalmarket.product.type.CategoryType;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -169,9 +171,11 @@ public class ProductService {
     return GetTransactionForm.from(productBoard);
   }
 
+  @Transactional
   public CreateRentalHistoryForm createRentalHistory(Long prId, CreateRentalHistoryForm form) {
 
     String userId = form.getUserId();
+    String userNickName = form.getUserNickName();
     Long totalPrice = form.getTotalPrice();
     int days = form.getDays();
 
@@ -179,6 +183,7 @@ public class ProductService {
 
     ProductBoard productBoard = product.get();
     Member sellerId = productBoard.getSellerId();
+    String sellerNickName = productBoard.getNickname();
 
     if (sellerId == null) {
       throw new RuntimeException("Product with id " + productBoard.getId() + " 가 존재하지 않습니다.");
@@ -225,7 +230,7 @@ public class ProductService {
     rentalHistoryRepository.save(sellerRentalHistory);
     RentalHistory saveUserRentalHistory = rentalHistoryRepository.save(userRentalHistory);
 
-    Long roomId = chatRoomService.connectRoomBetweenUsers(userId, sellerId.getEmail(),
+    Long roomId = chatRoomService.connectRoomBetweenUsers(userNickName, sellerNickName,
         productBoard);
 
     String message = String.format(
@@ -325,5 +330,12 @@ public class ProductService {
     rentalHistoryRepository.save(rentalHistory);
 
   }
-}
 
+  public RentalHistoryDetail retalHistoryDetail(Long id) {
+
+    RentalHistory rentalHistory = rentalHistoryRepository.findById(id)
+        .orElseThrow(() -> new NotFoundException("대여 기록을 찾을 수 없습니다."));
+
+    return RentalHistoryDetail.from(rentalHistory);
+  }
+}
