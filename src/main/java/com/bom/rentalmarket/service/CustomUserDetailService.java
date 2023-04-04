@@ -6,13 +6,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
+// service 패키지 정리 
 @RequiredArgsConstructor
 @Service
 public class CustomUserDetailService implements UserDetailsService {
     // 토큰의 인증정보를 조회할때 사용
     private final MemberRepository memberRepository;
-
+    
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return memberRepository.findByEmail(username)
