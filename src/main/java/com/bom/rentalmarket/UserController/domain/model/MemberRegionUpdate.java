@@ -14,6 +14,9 @@ import javax.validation.constraints.NotBlank;
 @Builder
 public class MemberRegionUpdate {
 
+    @NotBlank(message = "지역 입력은 필수 사항 입니다.")
+    private String region;
+
     @NotBlank(message = "새 지역 입력은 필수 사항 입니다.")
-    private String NewRegion;
+    private String newRegion;
 }
