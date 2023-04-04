@@ -6,6 +6,7 @@ import com.bom.rentalmarket.product.model.GetProductDetailForm;
 import com.bom.rentalmarket.product.model.GetProductForm;
 import com.bom.rentalmarket.product.model.GetRentalHistoryForm;
 import com.bom.rentalmarket.product.model.GetTransactionForm;
+import com.bom.rentalmarket.product.model.RentalHistoryDetail;
 import com.bom.rentalmarket.product.service.ProductService;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
@@ -112,6 +113,15 @@ public class ProductController {
         page, size);
 
     return ResponseEntity.ok().body(productList);
+  }
+
+  @GetMapping("/history/{id}")
+  public ResponseEntity<RentalHistoryDetail> rentalHistoryDetail (
+      @PathVariable Long id) {
+
+    RentalHistoryDetail rentalHistoryDetail = productService.retalHistoryDetail(id);
+
+    return ResponseEntity.ok().body(rentalHistoryDetail);
   }
 
   @DeleteMapping("/history/{id}")

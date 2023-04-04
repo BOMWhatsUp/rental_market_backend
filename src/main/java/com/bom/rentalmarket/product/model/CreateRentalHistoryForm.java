@@ -17,6 +17,7 @@ public class CreateRentalHistoryForm {
   private Long id;
   private Long productId;
   private String userId;
+  private String userNickName;
   private String sellerId;
   private Long totalPrice;
   private LocalDateTime rentalDate;
