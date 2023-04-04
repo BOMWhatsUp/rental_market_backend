@@ -42,7 +42,7 @@ public class SecurityConfig {
 
         //URL 관리
         .authorizeRequests()
-        .antMatchers("/", "/login", "/signup", "/check/**").permitAll()
+        .antMatchers("/", "/login", "/signup", "/check/**", "/chatting/**").permitAll()
         .anyRequest().authenticated()
         .and()
 
