@@ -1,20 +1,16 @@
 package com.bom.rentalmarket.UserController.controller;
 
 
-import com.bom.rentalmarket.UserController.domain.exception.ExistsEmailException;
-import com.bom.rentalmarket.UserController.domain.exception.ExistsNickNameException;
-import com.bom.rentalmarket.UserController.domain.exception.NotMatchPasswordException;
-import com.bom.rentalmarket.UserController.domain.exception.UserNotFoundException;
+import com.bom.rentalmarket.UserController.domain.exception.*;
 import com.bom.rentalmarket.UserController.domain.model.*;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import com.bom.rentalmarket.s3.S3Service;
-import com.bom.rentalmarket.service.LoginCheckService;
+import com.bom.rentalmarket.UserController.service.LoginCheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
@@ -42,6 +38,7 @@ public class MemberController {
     private final LoginCheckService loginCheckService;
 
     private final S3Service s3Service;
+
 
     // email 중복  error Message 보내주는 로직
     @ExceptionHandler(ExistsEmailException.class)
@@ -75,8 +72,8 @@ public class MemberController {
                 .password(passwordEncoder.encode(memberInput.getPassword()))//비밀번호 인코딩
                 .region(memberInput.getRegion())
                 .regDate(LocalDateTime.now())
-                .roles(Collections.singletonList("ROLE_USER"))
-                .imageUrl(memberInput.getImageUrl())//roles는 최초 USER로 설정
+                .roles(Collections.singletonList("ROLE_USER")) //roles는 최초 USER로 설정
+                .imageUrl(memberInput.getImageUrl())
                 .build();
 
         memberRepository.save(member);
@@ -84,14 +81,13 @@ public class MemberController {
     }
 
     // email 중복 검사
-   @GetMapping("/checkEmail/{email}")
-   public ResponseEntity<Boolean> checkByEmail(@PathVariable String email) {
+    @GetMapping("/check/email/{email}")
+    public ResponseEntity<Boolean> checkByEmail(@PathVariable String email) {
         return ResponseEntity.ok(loginCheckService.checkEmail(email));
-   }
-
+    }
 
     // nickName 증복 검사
-    @GetMapping("/checkNickName/{nickName}")
+    @GetMapping("/check/nickName/{nickName}")
     public ResponseEntity<Boolean> checkByNickName(@PathVariable String nickName) {
         return ResponseEntity.ok(loginCheckService.checkNickName(nickName));
     }
@@ -102,7 +98,7 @@ public class MemberController {
      닉네임은 중복 불가까지..
      */
 
-    @PatchMapping("/updateNickName/{id}")
+    @PatchMapping("/update/NickName/{id}")
     public ResponseEntity<?> updateNickName(@PathVariable Long id
             , @RequestBody MemberNickNameUpdate memberNickNameUpdate
             , Errors errors) {
@@ -114,39 +110,41 @@ public class MemberController {
         }
 
         Member member = memberRepository.findByIdAndNickName(id, memberNickNameUpdate.getNickName())
-                .orElseThrow(() -> new ExistsNickNameException("이미 존재한 닉네임 입니다."));
+                .orElseThrow(() -> new ExistsNickNameException("닉네임이 일치하지 않습니다"));
 
         member.setNickName(memberNickNameUpdate.getNewNickName());
         member.setUpdateDate(LocalDateTime.now());
-
         memberRepository.save(member);
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok().body(memberNickNameUpdate);
     }
 
-    @PatchMapping("/updateRegion/{id}")
+
+    @PatchMapping("/update/Region/{id}")
     public ResponseEntity<?> updateRegion(@PathVariable Long id
-            , @RequestBody  MemberRegionUpdate memberRegionUpdate
+            , @RequestBody MemberRegionUpdate memberRegionUpdate
             , Errors errors) {
         List<ResponseError> responseErrorList = new ArrayList<>();
         if (errors.hasErrors()) {
             errors.getAllErrors().forEach((e) -> responseErrorList.add(ResponseError.of((FieldError) e)));
             return new ResponseEntity<>(responseErrorList, HttpStatus.BAD_REQUEST);
         }
-        Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보가 없습니다."));
+        Member member = memberRepository.findByIdAndRegion(id, memberRegionUpdate.getRegion())
+                .orElseThrow(() -> new ExistsRegionException("지역 정보가 일치하지 않습니다."));
 
         member.setRegion(memberRegionUpdate.getNewRegion());
         member.setUpdateDate(LocalDateTime.now());
 
         memberRepository.save(member);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(memberRegionUpdate);
     }
 
-    // 마이페이지 프로필 수정
-    @PostMapping("/upload")
-    public String upload(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+    // 마이페이지 프로필 수정, 로직 다시 만들어야 함
+    @PatchMapping("/upload/{id}")
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+
         String fileName = s3Service.upload(multipartFile);
-        return fileName;
+        return ResponseEntity.ok().body(fileName);
     }
 
     // 마이페이지 회원 비밀번호 수정
@@ -207,11 +205,11 @@ public class MemberController {
             throw new NotMatchPasswordException("잘못된 비밀번호입니다.");
         }
 
-        String token  = jwtTokenProvider.createToken(member.getUsername(), member.getRoles()
+        String token = jwtTokenProvider.createToken(member.getUsername(), member.getRoles()
                 , member.getNickName(), member.getRegion(), member.getImageUrl());
 
         // 로그인에 성공하면 email, roles 로 토큰 생성 후 반환
-        return  ResponseEntity.ok().body(token);
+        return ResponseEntity.ok().body(token);
     }
 
 }

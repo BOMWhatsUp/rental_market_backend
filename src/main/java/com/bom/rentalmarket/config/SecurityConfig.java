@@ -25,7 +25,6 @@ public class SecurityConfig {
     }
 
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -39,7 +38,7 @@ public class SecurityConfig {
 
                 //URL 관리
                 .authorizeRequests()
-                .antMatchers("/signup", "/login", "/h2-console/**").permitAll()
+                .antMatchers("/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
 
@@ -49,5 +48,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
 
