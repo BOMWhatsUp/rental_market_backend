@@ -27,6 +27,13 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew clean build -x test
       
+    - name: Download application.properties from S3
+      run: aws s3 cp s3://$S3_BUCKET_NAME/application.properties ./
+      
+    # 다운로드한 application.properties 파일을 resources 디렉토리로 이동
+    - name: Move application.properties to resources
+      run: mv application.properties ./src/main/resources/    
+      
     # 디렉토리 생성
     - name: Make Directory
       run: mkdir -p deploy
@@ -53,13 +60,6 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
-        
-    - name: Download application.properties from S3
-      run: aws s3 cp s3://$S3_BUCKET_NAME/application.properties ./
-      
-    # 다운로드한 application.properties 파일을 resources 디렉토리로 이동
-    - name: Move application.properties to resources
-      run: mv application.properties ./src/main/resources/
       
     - name: Upload to S3
       run:  aws s3 cp --region ap-northeast-2 ./rentalmarket.zip s3://$S3_BUCKET_NAME/
