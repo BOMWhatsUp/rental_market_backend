@@ -8,7 +8,6 @@ import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
-import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
