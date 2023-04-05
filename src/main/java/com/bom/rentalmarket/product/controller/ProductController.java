@@ -98,7 +98,7 @@ public class ProductController {
       @RequestParam(required = false, defaultValue = "10") int size) {
 
     List<GetRentalHistoryForm> productList = productService.getBuyerRentalHistory(userId,
-        page, size);
+        (long) page, (long) size);
 
     return ResponseEntity.ok().body(productList);
   }
@@ -110,7 +110,7 @@ public class ProductController {
       @RequestParam(required = false, defaultValue = "10") int size) {
 
     List<GetRentalHistoryForm> productList = productService.getSellerRentalHistory(sellerId,
-        page, size);
+        (long) page, (long) size);
 
     return ResponseEntity.ok().body(productList);
   }
@@ -119,7 +119,7 @@ public class ProductController {
   public ResponseEntity<RentalHistoryDetail> rentalHistoryDetail (
       @PathVariable Long id) {
 
-    RentalHistoryDetail rentalHistoryDetail = productService.retalHistoryDetail(id);
+    RentalHistoryDetail rentalHistoryDetail = productService.rentalHistoryDetail(id);
 
     return ResponseEntity.ok().body(rentalHistoryDetail);
   }

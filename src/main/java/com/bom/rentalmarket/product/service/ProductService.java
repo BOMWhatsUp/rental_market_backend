@@ -3,8 +3,11 @@ package com.bom.rentalmarket.product.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
+import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
+import com.bom.rentalmarket.chatting.service.ChatService;
 import com.bom.rentalmarket.product.entity.ProductBoard;
+import com.bom.rentalmarket.product.entity.QRentalHistory;
 import com.bom.rentalmarket.product.entity.RentalHistory;
 import com.bom.rentalmarket.product.model.CreateProductForm;
 import com.bom.rentalmarket.product.model.CreateRentalHistoryForm;
@@ -18,6 +21,8 @@ import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
 import com.bom.rentalmarket.product.type.CategoryType;
 import com.bom.rentalmarket.product.type.StatusType;
 import com.bom.rentalmarket.s3.S3Service;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,12 +30,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +45,8 @@ public class ProductService {
   private final S3Service s3Service;
   private final ChatRoomService chatRoomService;
   private final MemberRepository memberRepository;
+  private final EntityManager entityManager;
+  private final ChatService chatService;
 
   public CreateProductForm createProduct(CreateProductForm form, List<MultipartFile> imageFiles,
       int mainImageIndex)
@@ -51,14 +55,11 @@ public class ProductService {
     Member optionalSeller = memberRepository.findByEmail(form.getSellerId())
         .orElseThrow(() -> new IllegalArgumentException("잘못된 판매자 아이디 입니다."));
 
-    System.out.println(optionalSeller);
     // 이미지 파일의 확장자를 체크하여 유효한 파일만 걸러내고, S3에 업로드합니다.
-    List<MultipartFile> validImageFiles = new ArrayList<>();
     List<String> imageUrls = new ArrayList<>();
     String mainImageUrl = "";
     for (MultipartFile file : imageFiles) {
       if (isValidImageExtension(file)) {
-        validImageFiles.add(file);
         String imageUrl = s3Service.upload(file);
         imageUrls.add(imageUrl);
       }
@@ -180,9 +181,17 @@ public class ProductService {
     int days = form.getDays();
 
     Optional<ProductBoard> product = productRepository.findById(prId);
-
+    if (product.isEmpty()) {
+      throw new NoSuchElementException("Product with PRODUCT_ID" + prId);
+    }
+    Optional<Member> optionalMember = memberRepository.findByEmail(userId);
+    if (optionalMember.isEmpty()) {
+      throw new NoSuchElementException("Product with USER_ID" + userId);
+    }
     ProductBoard productBoard = product.get();
+
     Member sellerId = productBoard.getSellerId();
+    String userProfile = optionalMember.get().getImageUrl();
     String sellerNickName = productBoard.getNickname();
 
     if (sellerId == null) {
@@ -234,15 +243,25 @@ public class ProductService {
         productBoard);
 
     String message = String.format(
-        "%s 님이 상품 렌탈을 요청하셨습니다.%n렌탈 요청 정보%n렌탈 희망 기간 : %s ~ %s%n합계 금액 : %d 입니다.",
+        "%s 님이 상품 렌탈을 요청하셨습니다."
+            + "렌탈 요청 정보\n렌탈 희망 기간 : %s ~ %s\n합계 금액 : %d 입니다.",
         userId, saveUserRentalHistory.getRentalDate().toLocalDate(),
         saveUserRentalHistory.getReturnDate().toLocalDate(), totalPrice);
+
+    ChatMessageForm chatForm = ChatMessageForm.builder()
+        .roomId(roomId)
+        .sender(userNickName)
+        .receiver(sellerNickName)
+        .userProfile(userProfile)
+        .message(message)
+        .build();
+
+    chatService.saveMessage(chatForm);
 
     return CreateRentalHistoryForm.builder()
         .totalPrice(saveUserRentalHistory.getTotalPrice())
         .returnDate(saveUserRentalHistory.getReturnDate())
         .roomId(roomId)
-        .message(message)
         .build();
   }
 
@@ -262,48 +281,45 @@ public class ProductService {
 //      s3Service.deleteImageUrls(imageUrls, mainImageUrl);
 //    }
 //  }
+  public List<GetRentalHistoryForm> getRentalHistory(String userId, String role, Long page,
+      Long size) {
+    QRentalHistory qRentalHistory = QRentalHistory.rentalHistory;
+    BooleanExpression userIdEq;
+    BooleanExpression buyerIdNotNull = qRentalHistory.userId.isNotNull();
+    BooleanExpression sellerIdNotNull = qRentalHistory.sellerId.isNotNull();
 
-  public List<GetRentalHistoryForm> getRentalHistory(String userId, String role, int page,
-      int size) {
-
-    Pageable pageable = PageRequest.of(page, size, Sort.by("rentalDate").descending());
-
-    Page<RentalHistory> rentalHistoryPage;
     if ("buyer".equals(role)) {
-      rentalHistoryPage = rentalHistoryRepository.findByUserId(userId, pageable);
-
-      if (page >= rentalHistoryPage.getTotalPages()) {
-        pageable = PageRequest.of(0, size, Sort.by("rentalDate").descending());
-        rentalHistoryPage = rentalHistoryRepository.findByUserId(userId, pageable);
-      }
+      userIdEq = qRentalHistory.userId.eq(userId).and(buyerIdNotNull);
     } else if ("seller".equals(role)) {
-      rentalHistoryPage = rentalHistoryRepository.findBySellerId(userId, pageable);
-
-      if (page >= rentalHistoryPage.getTotalPages()) {
-        pageable = PageRequest.of(0, size, Sort.by("rentalDate").descending());
-        rentalHistoryPage = rentalHistoryRepository.findBySellerId(userId, pageable);
-      }
+      userIdEq = qRentalHistory.sellerId.eq(userId).and(sellerIdNotNull);
     } else {
       throw new IllegalArgumentException("Unknown role: " + role);
     }
 
-    return rentalHistoryPage.getContent()
-        .stream()
+    JPAQuery<RentalHistory> query = new JPAQuery<>(entityManager);
+    List<RentalHistory> rentalHistoryList = query.select(qRentalHistory)
+        .from(qRentalHistory)
+        .where(userIdEq)
+        .orderBy(qRentalHistory.rentalDate.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+        .fetch();
+
+    return rentalHistoryList.stream()
         .map(GetRentalHistoryForm::from)
         .collect(Collectors.toList());
   }
 
-  public List<GetRentalHistoryForm> getBuyerRentalHistory(String userId, int page, int size) {
+  public List<GetRentalHistoryForm> getBuyerRentalHistory(String userId, Long page, Long size) {
 
     String buyer = "buyer";
 
     return getRentalHistory(userId, buyer, page, size);
   }
 
-  public List<GetRentalHistoryForm> getSellerRentalHistory(String sellerId, int page, int size) {
+  public List<GetRentalHistoryForm> getSellerRentalHistory(String sellerId, Long page, Long size) {
 
     String seller = "seller";
-
     return getRentalHistory(sellerId, seller, page, size);
   }
 
@@ -331,7 +347,7 @@ public class ProductService {
 
   }
 
-  public RentalHistoryDetail retalHistoryDetail(Long id) {
+  public RentalHistoryDetail rentalHistoryDetail(Long id) {
 
     RentalHistory rentalHistory = rentalHistoryRepository.findById(id)
         .orElseThrow(() -> new NotFoundException("대여 기록을 찾을 수 없습니다."));

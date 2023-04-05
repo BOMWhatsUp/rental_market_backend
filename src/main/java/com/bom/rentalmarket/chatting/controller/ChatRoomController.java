@@ -1,11 +1,9 @@
 package com.bom.rentalmarket.chatting.controller;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
-import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.CreateRoomForm;
 import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
-import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import java.util.List;
