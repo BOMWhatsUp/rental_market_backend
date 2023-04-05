@@ -16,7 +16,7 @@ public class ReturnProductForm {
 
     private Long id;
 
-    private ProductBoard productId;
+    private Long productId;
 
     private String message;
 

@@ -63,6 +63,7 @@ public class ChatRoomController {
         @PathVariable Long roomId,
         @RequestHeader(name="Authorization") String token) {
         chatRoomService.deleteRoom(roomId, provider.getUserPk(token));
+
         return ResponseEntity.ok().build();
     }
 }
