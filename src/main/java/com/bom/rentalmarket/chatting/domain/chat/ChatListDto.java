@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatListDto {
+    private Long roomId;
     private String receiverNickName;
     private String receiverImageUrl;
     private LocalDateTime latelySenderDate;

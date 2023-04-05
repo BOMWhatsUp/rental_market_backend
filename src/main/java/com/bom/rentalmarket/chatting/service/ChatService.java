@@ -1,10 +1,14 @@
 package com.bom.rentalmarket.chatting.service;
 
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.*;
+
 import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
 import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
+import com.bom.rentalmarket.chatting.exception.ChatCustomException;
+import com.bom.rentalmarket.chatting.exception.ErrorCode;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,10 +22,10 @@ public class ChatService {
 
     public void saveMessage(ChatMessageForm form) {
         ChatRoom chatRoom = chatRoomRepository.findById(form.getRoomId())
-            .orElseThrow(() -> new RuntimeException("존재하지 않는 채팅방이므로 메세지를 보낼 수 없습니다."));
+            .orElseThrow(() -> new ChatCustomException(NOT_FOUND_CHATROOM));
 
         chatMessageRepository.save(ChatMessage.builder()
-            .userName(form.getSender())
+            .nickname(form.getSender())
             .message(form.getMessage())
             .chatRoom(chatRoom)
             .sendTime(LocalDateTime.now())

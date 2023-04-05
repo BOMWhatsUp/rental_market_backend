@@ -5,7 +5,10 @@ import static com.bom.rentalmarket.chatting.exception.ErrorCode.NOT_FOUND_CHATRO
 
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
+import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
+import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
@@ -14,9 +17,14 @@ import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import com.bom.rentalmarket.chatting.domain.repository.RegisterRoomRepository;
 import com.bom.rentalmarket.chatting.exception.ChatCustomException;
 import com.bom.rentalmarket.product.entity.ProductBoard;
+import com.bom.rentalmarket.product.entity.RentalHistory;
+import com.bom.rentalmarket.product.exception.ProductControllerAdvice.NotFoundException;
+import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
+import com.bom.rentalmarket.product.type.StatusType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +38,8 @@ public class ChatRoomService {
     private final RegisterRoomRepository registerRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
+    private final RentalHistoryRepository rentalHistoryRepository;
+    private final ChatService chatService;
 
     public List<ChatListDto> findAllRoom(String nickname) {
         List<ChatListDto> chatList = new ArrayList<>();
@@ -42,6 +52,7 @@ public class ChatRoomService {
                 chatRoom.getId());
 
             chatMessage.ifPresent(message -> chatList.add(ChatListDto.builder()
+                .roomId(chatRoom.getId())
                 .receiverNickName(anotherUserNickname)
                 .message(message.getMessage())
                 .latelySenderDate(message.getSendTime())
@@ -69,7 +80,6 @@ public class ChatRoomService {
         ChatRoom chatRoom = optionalChatRoom.get();
 
         List<ChatMessage> messages = chatRoom.getMessages();
-        messages.sort((m1, m2) -> m2.getId().compareTo(m1.getId()));
 
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
             chatRoom.getId());
@@ -77,9 +87,13 @@ public class ChatRoomService {
 
         for (RegisterRoom room : registerRooms) {
             if (!room.getNickname().equals(senderNickname)) {
-                receiverUserNickname = room.getNickname();
+                messages.stream()
+                    .filter(message -> message.getNickname().equals(room.getNickname()))
+                    .forEach(m -> m.setRead(true));
             }
         }
+
+        chatMessageRepository.saveAll(messages);
 
         return ChatRoomDetailDto.builder()
             .messages(messages)
@@ -90,13 +104,14 @@ public class ChatRoomService {
     }
 
     public Long connectRoomBetweenUsers(String receiver, String sender, ProductBoard product) {
-        Long chatRoomId = checkAlreadyRoom(receiver, sender);
+        Long chatRoomId = checkAlreadyRoom(receiver, sender, product.getId());
+        boolean checkUsers = this.checkUsers(receiver, sender);
+        if(!checkUsers) {
+            throw new ChatCustomException(NONE_EXISTENT_MEMBER);
+        }
+
         if(chatRoomId != 0L) {
             return chatRoomId;
-        }
-        boolean checkUser = checkUsers(receiver, sender);
-        if(!checkUser) {
-            throw new ChatCustomException(NONE_EXISTENT_MEMBER);
         }
 
         ChatRoom chatRoom = new ChatRoom();
@@ -108,8 +123,8 @@ public class ChatRoomService {
         return chatRoom.getId();
     }
 
-    private void createRoom(String userName, ChatRoom chatRoom) {
-        RegisterRoom registerRoom = RegisterRoom.register(userName, chatRoom);
+    private void createRoom(String userNickname, ChatRoom chatRoom) {
+        RegisterRoom registerRoom = RegisterRoom.register(userNickname, chatRoom);
         registerRoomRepository.save(registerRoom);
     }
 
@@ -125,6 +140,36 @@ public class ChatRoomService {
         registerRoomRepository.deleteAll(registerRooms);
     }
 
+    public Long saveReturnProductMessage(ReturnProductForm form) {
+        Long roomId = this.connectRoomBetweenUsers(form.getUserNickname(),
+            form.getSellerNickname(), form.getProductId());
+
+        String sendReturnNumberMessage = form.getUserNickname()
+            + "님께서 물품 반납을 완료 하셨습니다. 운송장 번호 발송드립니다. \n"
+            + "운송장 번호: " + form.getMessage();
+
+        ChatMessageForm messageForm = ChatMessageForm.builder()
+            .roomId(roomId)
+            .receiver(form.getSellerNickname())
+            .sender(form.getUserNickname())
+            .message(sendReturnNumberMessage)
+            .build();
+
+        chatService.saveMessage(messageForm);
+
+        RentalHistory rentalHistory = rentalHistoryRepository.findById(form.getId())
+            .orElseThrow(() -> new NotFoundException("대여 기록을 찾을 수 없습니다."));
+
+        rentalHistory.setStatusAndReturnYn(StatusType.RETURNED, true);
+
+        ProductBoard productBoard = rentalHistory.getProductId();
+        productBoard.setRentStatus(StatusType.AVAILABLE);
+
+        rentalHistoryRepository.save(rentalHistory);
+
+        return roomId;
+    }
+
     private String findAnotherUser(Long roomId, String myNickname) {
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(roomId);
         for (RegisterRoom room : registerRooms) {
@@ -135,7 +180,7 @@ public class ChatRoomService {
         return myNickname;
     }
 
-    private Long checkAlreadyRoom(String receiver, String sender) {
+    private Long checkAlreadyRoom(String receiver, String sender, Long productId) {
         List<RegisterRoom> receiverRooms = registerRoomRepository.findAllByNickname(receiver);
         Set<Long> receiverChatRooms = new HashSet<>();
         for(RegisterRoom registerRoom : receiverRooms){
@@ -144,9 +189,12 @@ public class ChatRoomService {
 
         List<RegisterRoom> senderRooms = registerRoomRepository.findAllByNickname(sender);
 
-        for(RegisterRoom registerRoom : senderRooms) {
-           if(receiverChatRooms.contains(registerRoom.getChatRoom().getId())) {
-               return registerRoom.getChatRoom().getId();
+        for(RegisterRoom senderChatroom : senderRooms) {
+           if(receiverChatRooms.contains(senderChatroom.getChatRoom().getId())) {
+               if(!Objects.equals(productId, senderChatroom.getChatRoom().getProduct().getId())) {
+                   return 0L;
+               }
+               return senderChatroom.getChatRoom().getId();
            }
         }
 
