@@ -1,6 +1,6 @@
 package com.bom.rentalmarket.chatting.service;
 
-import static com.bom.rentalmarket.chatting.exception.ErrorCode.*;
+import static com.bom.rentalmarket.chatting.exception.ErrorCode.NOT_FOUND_CHATROOM;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
@@ -8,7 +8,6 @@ import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.repository.ChatMessageRepository;
 import com.bom.rentalmarket.chatting.domain.repository.ChatRoomRepository;
 import com.bom.rentalmarket.chatting.exception.ChatCustomException;
-import com.bom.rentalmarket.chatting.exception.ErrorCode;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
