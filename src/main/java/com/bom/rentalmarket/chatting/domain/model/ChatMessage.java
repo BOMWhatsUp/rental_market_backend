@@ -1,6 +1,7 @@
 package com.bom.rentalmarket.chatting.domain.model;
 
 import java.time.LocalDateTime;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,7 +12,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+
+@Setter
 @Getter
 @Builder
 @NoArgsConstructor
@@ -22,9 +26,12 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userName;
+    private String nickname;
     private String message;
     private LocalDateTime sendTime;
+
+    @Column(nullable = false)
+    private boolean isRead = false;
 
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)

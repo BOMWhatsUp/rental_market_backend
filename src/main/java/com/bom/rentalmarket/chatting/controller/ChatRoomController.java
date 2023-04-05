@@ -1,9 +1,13 @@
 package com.bom.rentalmarket.chatting.controller;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
+import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.CreateRoomForm;
+import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
+import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
+import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ChatRoomController {
     private final ChatRoomService chatRoomService;
+    private final JwtTokenProvider provider;
 
     @GetMapping("/room")
     public ResponseEntity<ChatRoomDetailDto> getRoomDetail(
@@ -34,7 +40,7 @@ public class ChatRoomController {
 
     @GetMapping("/list")
     public ResponseEntity<List<ChatListDto>> getAllChatRoom(@RequestParam(value = "nickname") String nickname) {
-        List<ChatListDto> chatList= chatRoomService.findAllRoom(nickname);
+        List<ChatListDto> chatList = chatRoomService.findAllRoom(nickname);
 
         return ResponseEntity.ok(chatList);
     }
@@ -47,8 +53,17 @@ public class ChatRoomController {
         return ResponseEntity.ok(roomId);
     }
 
+    @PostMapping("/return")
+    public ResponseEntity<String> returnProduct(@RequestBody ReturnProductForm form) {
+        String roomId = String.valueOf(chatRoomService.saveReturnProductMessage(form));
+
+        return ResponseEntity.ok(roomId);
+    }
+
     @DeleteMapping("/room/{roomId}")
-    public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
+    public ResponseEntity<Void> deleteRoom(
+        @PathVariable Long roomId,
+        @RequestHeader(name="X-AUTH-TOKEN") String token) {
         chatRoomService.deleteRoom(roomId);
 
         return ResponseEntity.ok().build();
