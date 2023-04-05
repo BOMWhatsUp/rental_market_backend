@@ -3,12 +3,12 @@ package com.bom.rentalmarket.chatting.service;
 import static com.bom.rentalmarket.chatting.exception.ErrorCode.NONE_EXISTENT_MEMBER;
 import static com.bom.rentalmarket.chatting.exception.ErrorCode.NOT_FOUND_CHATROOM;
 
+import com.bom.rentalmarket.UserController.domain.model.entity.Member;
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
 import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
-import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.domain.model.ChatMessage;
 import com.bom.rentalmarket.chatting.domain.model.ChatRoom;
 import com.bom.rentalmarket.chatting.domain.model.RegisterRoom;
@@ -48,6 +48,7 @@ public class ChatRoomService {
         for (RegisterRoom room : registerRooms) {
             ChatRoom chatRoom = room.getChatRoom();
             String anotherUserNickname = this.findAnotherUser(chatRoom.getId(), nickname);
+
             Optional<ChatMessage> chatMessage = chatMessageRepository.findFirstByChatRoom_IdOrderBySendTimeDesc(
                 chatRoom.getId());
 
@@ -128,16 +129,28 @@ public class ChatRoomService {
         registerRoomRepository.save(registerRoom);
     }
 
-    public void deleteRoom(Long roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-            .orElseThrow(() -> new ChatCustomException(NOT_FOUND_CHATROOM));
-        List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(
-            chatRoom.getId());
+    public void deleteRoom(Long roomId, String userEmail) {
+        Member member = memberRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new ChatCustomException(NONE_EXISTENT_MEMBER));
+
+        List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(roomId);
         if (registerRooms.isEmpty()) {
             throw new ChatCustomException(NOT_FOUND_CHATROOM);
-        }
+        } else if(registerRooms.size() == 1) {
+            ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                    .orElseThrow(() -> new ChatCustomException(NOT_FOUND_CHATROOM));
 
-        registerRoomRepository.deleteAll(registerRooms);
+            List<RegisterRoom> onceRegisterRoom = registerRoomRepository.findByChatRoom_Id(
+                chatRoom.getId());
+            registerRoomRepository.deleteById(onceRegisterRoom.get(0).getId());
+            chatMessageRepository.deleteAllByChatRoom_Id(chatRoom.getId());
+            chatRoomRepository.deleteById(chatRoom.getId());
+        } else {
+            RegisterRoom deleteUserNicknameAndRegisterRoom = registerRoomRepository
+                .findByChatRoom_IdAndNickname(roomId, member.getNickName());
+
+            registerRoomRepository.deleteById(deleteUserNicknameAndRegisterRoom.getId());
+        }
     }
 
     public Long saveReturnProductMessage(ReturnProductForm form) {
@@ -177,7 +190,7 @@ public class ChatRoomService {
                 return room.getNickname();
             }
         }
-        return myNickname;
+        return "대화 상대 없음";
     }
 
     private Long checkAlreadyRoom(String receiver, String sender, Long productId) {

@@ -1,11 +1,9 @@
 package com.bom.rentalmarket.chatting.controller;
 
 import com.bom.rentalmarket.chatting.domain.chat.ChatListDto;
-import com.bom.rentalmarket.chatting.domain.chat.ChatMessageForm;
 import com.bom.rentalmarket.chatting.domain.chat.ChatRoomDetailDto;
 import com.bom.rentalmarket.chatting.domain.chat.CreateRoomForm;
 import com.bom.rentalmarket.chatting.domain.chat.ReturnProductForm;
-import com.bom.rentalmarket.chatting.domain.chat.TransactionMessageForm;
 import com.bom.rentalmarket.chatting.service.ChatRoomService;
 import com.bom.rentalmarket.jwt.JwtTokenProvider;
 import java.util.List;
@@ -63,11 +61,8 @@ public class ChatRoomController {
     @DeleteMapping("/room/{roomId}")
     public ResponseEntity<Void> deleteRoom(
         @PathVariable Long roomId,
-        @RequestHeader(name="X-AUTH-TOKEN") String token) {
-        chatRoomService.deleteRoom(roomId);
-
+        @RequestHeader(name="Authorization") String token) {
+        chatRoomService.deleteRoom(roomId, provider.getUserPk(token));
         return ResponseEntity.ok().build();
     }
-
-
 }

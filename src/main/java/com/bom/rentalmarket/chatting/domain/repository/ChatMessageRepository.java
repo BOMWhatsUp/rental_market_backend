@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     Optional<ChatMessage> findFirstByChatRoom_IdOrderBySendTimeDesc(Long id);
+    void deleteAllByChatRoom_Id(Long roomId);
 }
