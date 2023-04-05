@@ -19,6 +19,7 @@ import com.bom.rentalmarket.chatting.exception.ChatCustomException;
 import com.bom.rentalmarket.product.entity.ProductBoard;
 import com.bom.rentalmarket.product.entity.RentalHistory;
 import com.bom.rentalmarket.product.exception.ProductControllerAdvice.NotFoundException;
+import com.bom.rentalmarket.product.repository.ProductRepository;
 import com.bom.rentalmarket.product.repository.RentalHistoryRepository;
 import com.bom.rentalmarket.product.type.StatusType;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class ChatRoomService {
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
     private final RentalHistoryRepository rentalHistoryRepository;
+    private final ProductRepository productRepository;
     private final ChatService chatService;
 
     public List<ChatListDto> findAllRoom(String nickname) {
@@ -154,8 +156,11 @@ public class ChatRoomService {
     }
 
     public Long saveReturnProductMessage(ReturnProductForm form) {
+        ProductBoard product = productRepository.findById(form.getProductId())
+            .orElseThrow(() -> new NotFoundException("존재하는 제품이 없습니다."));
+
         Long roomId = this.connectRoomBetweenUsers(form.getUserNickname(),
-            form.getSellerNickname(), form.getProductId());
+            form.getSellerNickname(), product);
 
         String sendReturnNumberMessage = form.getUserNickname()
             + "님께서 물품 반납을 완료 하셨습니다. 운송장 번호 발송드립니다. \n"
