@@ -107,6 +107,9 @@ public class ChatRoomService {
     }
 
     public Long connectRoomBetweenUsers(String receiver, String sender, ProductBoard product) {
+        if(product == null) {
+            throw new NotFoundException("존재하지 않는 상품입니다.");
+        }
         Long chatRoomId = checkAlreadyRoom(receiver, sender, product.getId());
         boolean checkUsers = this.checkUsers(receiver, sender);
         if(!checkUsers) {
@@ -188,7 +191,7 @@ public class ChatRoomService {
         return roomId;
     }
 
-    private String findAnotherUser(Long roomId, String myNickname) {
+    public String findAnotherUser(Long roomId, String myNickname) {
         List<RegisterRoom> registerRooms = registerRoomRepository.findByChatRoom_Id(roomId);
         for (RegisterRoom room : registerRooms) {
             if (!myNickname.equals(room.getNickname())) {
@@ -219,7 +222,7 @@ public class ChatRoomService {
         return 0L;
     }
 
-    private boolean checkUsers(String receiver, String sender) {
+    public boolean checkUsers(String receiver, String sender) {
         if(memberRepository.countByNickName(receiver) <= 0 || memberRepository.countByNickName(sender) <= 0) {
             return false;
         }
