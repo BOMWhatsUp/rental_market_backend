@@ -1,4 +1,4 @@
-package com.bom.rentalmarket.service;
+package com.bom.rentalmarket.UserController.service;
 
 import com.bom.rentalmarket.UserController.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
